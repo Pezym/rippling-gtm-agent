@@ -1,0 +1,1104 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deel — claims ledger</title>
+<style>
+  :root { --ink:#1f2328; --dim:#6a737d; --faint:#98a1ab; --line:#e6e8eb; --soft:#f6f7f8;
+          --ok:#0e7a55; --okbg:#e7f5ef; --warn:#8a5a00; --warnbg:#fdf3dc;
+          --bad:#b42318; --badbg:#fdecea; --blue:#0b6bcb; --bluebg:#e8f1fc; }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#e6e8eb; --dim:#9aa4b0; --faint:#6b7480; --line:#2a2f36; --soft:#171a1f;
+             --ok:#4cc596; --okbg:#0d2b20; --warn:#e2b93d; --warnbg:#2c2410;
+             --bad:#f08578; --badbg:#331512; --blue:#6cb0f5; --bluebg:#10233a; }
+    body { background:#0f1114; }
+  }
+  * { box-sizing:border-box; margin:0; }
+  body { font:15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+         color:var(--ink); max-width:860px; margin:0 auto; padding:48px 28px 90px; }
+  h1 { font-size:30px; letter-spacing:-.4px; }
+  .sub { color:var(--dim); margin-top:6px; }
+  .statbar { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 6px; }
+  .stat { border:1px solid var(--line); border-radius:999px; padding:5px 13px; font-size:12.5px; color:var(--dim); }
+  .stat b { color:var(--ink); }
+  .filters { position:sticky; top:0; background:inherit; backdrop-filter:blur(6px);
+             display:flex; flex-wrap:wrap; gap:6px; padding:14px 0; border-bottom:1px solid var(--line);
+             margin-bottom:10px; z-index:5; background-color:rgba(255,255,255,.85); }
+  @media (prefers-color-scheme: dark) { .filters { background-color:rgba(15,17,20,.85); } }
+  .filters button { border:1px solid var(--line); background:none; color:var(--dim); border-radius:999px;
+                    padding:5px 13px; font:inherit; font-size:12.5px; cursor:pointer; }
+  .filters button.on { background:var(--bluebg); color:var(--blue); border-color:var(--blue); }
+  section { margin-top:34px; }
+  h2 { font-size:19px; padding-bottom:8px; border-bottom:1px solid var(--line); margin-bottom:14px;
+       text-transform:capitalize; }
+  .count { color:var(--faint); font-weight:400; font-size:14px; }
+  .claim { border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:12px; }
+  .claim.hidden { display:none; }
+  .head { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:8px; }
+  .cid { font-family:ui-monospace, Menlo, monospace; font-size:12px; color:var(--blue);
+         background:var(--bluebg); border-radius:6px; padding:2px 8px; }
+  .pill { font-size:11.5px; border-radius:999px; padding:2px 10px; }
+  .p-ok { color:var(--ok); background:var(--okbg); }
+  .p-warn { color:var(--warn); background:var(--warnbg); }
+  .p-bad { color:var(--bad); background:var(--badbg); }
+  .p-dim { color:var(--dim); background:var(--soft); }
+  .text { font-size:15px; }
+  blockquote { margin:10px 0 8px; padding:8px 14px; border-left:3px solid var(--line);
+               color:var(--dim); font-style:italic; background:var(--soft); border-radius:0 8px 8px 0; }
+  .src { font-size:12.5px; color:var(--faint); }
+  .src a { color:var(--blue); text-decoration:none; }
+  .vnote { margin-top:8px; font-size:12.5px; color:var(--dim); background:var(--soft);
+           border-radius:8px; padding:7px 11px; }
+  .vnote b { font-weight:600; }
+  .note { color:var(--dim); font-size:13px; margin-bottom:10px; }
+  .corr { padding-left:20px; color:var(--dim); font-size:13.5px; }
+  .corr li { margin-bottom:8px; }
+  footer { margin-top:40px; color:var(--faint); font-size:12.5px; border-top:1px solid var(--line); padding-top:14px; }
+</style></head><body>
+<h1>Deel — claims ledger</h1>
+<div class="sub">Every fact behind the brief, with its verbatim quote, source, and how hard it survived verification.
+Generated 2026-07-28 · model claude-opus-4-8</div>
+<div class="statbar">
+  <span class="stat"><b>92</b> claims</span>
+  <span class="stat"><b>36</b> confirmed</span>
+  <span class="stat"><b>56</b> plausible</span>
+  <span class="stat"><b>0</b> flagged</span>
+  <span class="stat"><b>43</b> measured · <b>36</b> proxy ·
+      <b>9</b> self-claimed · <b>4</b> inferred</span>
+</div>
+<div class="filters" id="filters">
+  <button class="on" data-f="all">all</button>
+  <button data-f="v:confirmed">confirmed</button>
+  <button data-f="v:plausible">plausible</button>
+  <button data-f="v:flagged">flagged</button>
+  <button data-f="e:measured">measured</button>
+  <button data-f="e:proxy">proxy</button>
+  <button data-f="e:stated_by_competitor">self-claimed</button>
+  <button data-f="e:inferred">inferred</button>
+</div>
+<section><h2>messaging <span class="count">12</span></h2><div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C008</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Deel frames pricing as commitment-free and SMB-friendly: month-to-month, no hidden costs, cancel anytime.</div>
+<blockquote>&ldquo;Flexible month-to-month pricing with no long-term commitments required&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/pricing/" target="_blank">Deel Pricing</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Page states flexible month-to-month with no long-term commitments; confirmed.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C014</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel&#x27;s homepage is demo-led with no pricing shown; hero positions it as an all-in-one global workforce platform.</div>
+<blockquote>&ldquo;Hire, manage, pay, &amp; equip anyone, anywhere.&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com" target="_blank">Deel Homepage</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Homepage hero and demo-led framing consistent with other homepage claims; not independently re-fetched.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C022</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Big Deel 2026 messaging theme reframes Deel around &#x27;a new operating model for global work—one that&#x27;s connected, intelligent, and built around the people who actually do the work.&#x27;</div>
+<blockquote>&ldquo;A new operating model for global work—one that&#x27;s connected, intelligent, and built around the people who actually do the work.&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/blog/big-deel-recap-2026/" target="_blank">The Big Deel 2026: Everything We Announced</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Messaging-theme quote from Deel recap blog; consistent with positioning.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C027</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel&#x27;s homepage H1 is action-verb led, spanning the full employee lifecycle rather than a single job-to-be-done.</div>
+<blockquote>&ldquo;Hire, manage, pay, &amp; equip anyone, anywhere.&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com" target="_blank">Deel homepage</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Action-verb H1 consistent with C014; homepage not re-fetched.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C034</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel&#x27;s global-payroll page anchors on eliminating tool &#x27;sprawl&#x27; and unifying all worker types on one platform — an outcome-led consolidation pitch.</div>
+<blockquote>&ldquo;Run global payroll without the sprawl Pay every worker type, in every country, from one platform.&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/global-payroll/" target="_blank">Deel Global Payroll</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Anti-sprawl consolidation copy plausible; global-payroll page not re-fetched.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C041</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Flagship problem-agitate angle. hook: global company shouldn&#x27;t feel like chaos | persona: founder/ops | pain: fragmentation of global HR/payroll | offer: guide | funnel: awareness | proof: none | format: static/headline</div>
+<blockquote>&ldquo;Running a global company shouldn&#x27;t feel like chaos.&rdquo;</blockquote>
+<div class="src"><a href="https://motionapp.com/library/deel" target="_blank">Deel Paid Social Creative Strategy | Motion</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Single ad-angle read from Motion library; proxy.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C045</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Switch/migration retargeting angle handling switching-cost objection. hook: stop dreading the switch, start with a plan | persona: HR/ops evaluating a provider change | pain: fear of migration pain | offer: step-by-step plan | funnel: comparison/conversion | CTA: Make the switch | format: static/headline</div>
+<blockquote>&ldquo;Stop dreading the switch. Start with a plan.&rdquo;</blockquote>
+<div class="src"><a href="https://motionapp.com/library/deel" target="_blank">Deel Paid Social Creative Strategy | Motion</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Switch/migration retargeting angle from Motion; proxy.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C056</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">CEO Alex Bouaziz runs founder-led thought leadership anchored on the annual Global Hiring Report, pushing an optimistic AI-as-job-creator narrative.</div>
+<blockquote>&ldquo;AI is creating jobs faster than anyone predicted&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/deel-works/ceo-letter-global-hiring-alex-bouaziz/" target="_blank">Global hiring trends 2026 | Alex Bouaziz | Deel CEO</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> CEO Global Hiring Report / AI-as-job-creator narrative from Deel&#x27;s own page; plausible.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C057</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Bouaziz&#x27;s core distributed-hiring narrative frames immigration restrictions as fueling (not slowing) cross-border remote hiring.</div>
+<blockquote>&ldquo;Companies just changed where they hire. The talent pool doesn&#x27;t stop at your border.&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/deel-works/ceo-letter-global-hiring-alex-bouaziz/" target="_blank">Global hiring trends 2026 | Alex Bouaziz | Deel CEO</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Distributed-hiring quote from CEO letter; consistent, not re-verified.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C071</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel&#x27;s declared position directly contradicts the complaint pattern: it frames FX as transparent, claiming the actual rate is always shown and a forward rate is used for stability.</div>
+<blockquote>&ldquo;Deel uses a Forward Rate provided by its banking partners at the time of payment to ensure transparency and stability... The actual rate you get is always shown on your payment statement&rdquo;</blockquote>
+<div class="src"><a href="https://help.letsdeel.com/hc/en-gb/articles/4407745380241-About-Exchange-Rates-and-Fees" target="_blank">About Exchange Rates and Fees – Deel</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Quote matches Deel&#x27;s own help-center FX statement; correctly graded stated_by_competitor.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C076</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Deel&#x27;s homepage H1 is &#x27;Hire, manage, pay, &amp; equip anyone, anywhere&#x27;, framing a broad all-in-one workforce scope rather than a single category.</div>
+<blockquote>&ldquo;Hire, manage, pay, &amp; equip anyone, anywhere&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com" target="_blank">Deel homepage</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Homepage H1 matches verbatim on fetch.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C091</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Messaging-drift signal (unverified by archive): Deel repositioned to a &#x27;full-stack platform&#x27; in Jan 2023 before the current &#x27;Global People Platform&#x27; frame, indicating a multi-year move from EOR/contractors toward all-in-one — but the layer/keep-your-stack enterprise message coexists, suggesting deliberate dual positioning.</div>
+<blockquote>&ldquo;Deel Simplifies Global HR with New Full-Stack Platform&rdquo;</blockquote>
+<div class="src"><a href="https://www.businesswire.com/news/home/20230123005215/en/Deel-Simplifies-Global-HR-with-New-Full-Stack-Platform" target="_blank">Deel Simplifies Global HR with New Full-Stack Platform</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> 2023 BusinessWire &#x27;full-stack platform&#x27; headline plausible; the multi-year-drift narrative is added inference, correctly low.</div>
+</div></section><section><h2>positioning <span class="count">20</span></h2><div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C007</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Deel&#x27;s value metric is per-worker/per-contractor/per-employee per month across all products, positioning it as a per-headcount HR/workforce platform rather than a flat-fee or usage tool.</div>
+<blockquote>&ldquo;$599 per EOR employee per month&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/pricing/" target="_blank">Deel Pricing</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> All products on re-fetched page priced per-worker/per-month; per-headcount value metric holds.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C017</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel will use Series E proceeds to build toward serving 100 million employees worldwide and advance AI-powered payroll/HR.</div>
+<blockquote>&ldquo;double down on expanding our infrastructure, advancing AI-powered payroll and HR products, and laying the foundation to serve 100 million employees worldwide&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/blog/new-investment-valuation/" target="_blank">Our Series E: Building the global infrastructure of work</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Self-stated use-of-proceeds and 100M-employee ambition from Deel&#x27;s own blog.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C020</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel is pivoting upmarket: it launched Enterprise Operations giving every enterprise customer a dedicated Enterprise Operations Manager, guaranteed SLAs, and executive escalation.</div>
+<blockquote>&ldquo;Every enterprise customer now gets a dedicated Enterprise Operations Manager in their timezone, guaranteed operational SLAs, and executive sponsorship for fast escalation.&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/blog/big-deel-recap-2026/" target="_blank">The Big Deel 2026: Everything We Announced</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Enterprise Operations Manager/SLA claim from Deel recap blog; not re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C028</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel frames its category as &#x27;The global people platform&#x27; and pushes an all-in-one consolidation narrative.</div>
+<blockquote>&ldquo;The Global People Platform&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com" target="_blank">Deel homepage</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> &#x27;Global people platform&#x27; consolidation framing plausible; not re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C035</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel&#x27;s global-payroll copy contains an implicit anti-HRIS/anti-rip-and-replace shot aimed at all-in-one platforms like Rippling, promising integration over system replacement.</div>
+<blockquote>&ldquo;no ripping or replacing your stack&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/global-payroll/" target="_blank">Deel Global Payroll</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> &#x27;No ripping or replacing your stack&#x27; plausible; the anti-Rippling targeting is inference not stated.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C036</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">AEO open opening: the &#x27;Deel vs Rippling&#x27; answer surface is owned by Rippling&#x27;s own compare page and third parties (G2, Capterra, CB Insights), not by Deel — Deel has no live /compare/deel-vs-rippling page (404). Rippling wins the head-to-head SoV.</div>
+<blockquote>&ldquo;See how Rippling compares to Deel | Rippling — rippling.com/compare/rippling-vs-deel&rdquo;</blockquote>
+<div class="src"><a href="https://www.rippling.com/compare/rippling-vs-deel" target="_blank">Deel vs Rippling — search results</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Rippling owning the compare surface / Deel 404 is plausible SoV read; the 404 not re-checked.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C037</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">AEO open opening: the &#x27;Deel alternatives&#x27; query surface is fully owned by third-party listicles (TopSource, Atlas, WorkMotion), with recurring negatives — pricing creep past headline fee, ticket-based support, contractor-first depth gaps. Neither Deel nor Rippling controls this narrative.</div>
+<blockquote>&ldquo;Companies most often leave Deel over pricing that grows past the headline fee, support that leans on chat and tickets, and a contractor-first model that gets thin for complex, multi-country payroll.&rdquo;</blockquote>
+<div class="src"><a href="https://topsourceworldwide.com/insights/best-deel-alternatives-eor-global-payroll/" target="_blank">9 Best Deel Alternatives — search snippet</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Third-party &#x27;Deel alternatives&#x27; listicle negatives; proxy, directionally consistent.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C038</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel appears to have repositioned from a contractor/EOR point tool toward a full &#x27;global people platform&#x27; (HR+IT+Payroll+Benefits+Mobility), moving into all-in-one HRIS territory where Rippling competes — inferred from the six-product homepage nav and &#x27;one platform&#x27; framing.</div>
+
+<div class="src"><a href="https://www.deel.com" target="_blank">Deel homepage</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Inferred repositioning into HRIS territory; supported by confirmed product/acquisition expansion.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C042</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Consolidation/platform positioning angle. hook: one platform for every country, role, region | persona: HR leader/ops | pain: point-solution sprawl | offer: education | funnel: education | proof: none | format: static/headline</div>
+<blockquote>&ldquo;One Global HR platform for every country, role, and region.&rdquo;</blockquote>
+<div class="src"><a href="https://motionapp.com/library/deel" target="_blank">Deel Paid Social Creative Strategy | Motion</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Consolidation ad-angle read from Motion; proxy.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C051</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel&#x27;s LinkedIn tagline positions it as an all-in-one platform spanning payroll, HR, benefits, mobility, performance and device management across 150+ countries.</div>
+<blockquote>&ldquo;One platform for payroll, HR, benefits, mobility, performance, and device management across 150+ countries.&rdquo;</blockquote>
+<div class="src"><a href="https://www.linkedin.com/company/deel/" target="_blank">Deel | LinkedIn</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> LinkedIn tagline / 150+ countries consistent with other sources; not re-fetched.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C062</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">In buyer-facing Deel-vs-Rippling comparisons, Deel is framed as simpler/faster for global hiring with clearer baseline pricing and 24/7 support, while Rippling is deeper but pricing-opaque and slower to support — a positioning attack surface against Rippling.</div>
+<blockquote>&ldquo;Deel is faster to implement and easier to learn, with clearer baseline pricing and 24/7 support via chat, email, and phone. In contrast, Rippling&#x27;s modular pricing is opaque, support is slower&rdquo;</blockquote>
+<div class="src"><a href="https://www.goworkwize.com/blog/deel-vs-rippling" target="_blank">Deel vs Rippling: Which Platform Is Better? (2026 Guide)</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Deel-favorable vs-Rippling framing from goworkwize; proxy comparison content.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C077</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Deel&#x27;s stated category frame is &#x27;The Global People Platform&#x27; — a coined/contested category rather than &#x27;payroll&#x27; or &#x27;HRIS&#x27;.</div>
+<blockquote>&ldquo;The Global People Platform&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com" target="_blank">Deel homepage</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> &#x27;The global people platform&#x27; tagline present on homepage as quoted.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C080</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Deel&#x27;s enterprise page leads with an explicit &#x27;works with your stack&#x27; H1 rather than a consolidation pitch: &#x27;Global payroll and hiring that plugs into your stack&#x27;.</div>
+<blockquote>&ldquo;Global payroll and hiring that plugs into your stack&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/segments/enterprise/" target="_blank">Global Payroll &amp; HR Software for Enterprise Businesses | Deel</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Enterprise H1 &#x27;Global payroll and hiring that plugs into your stack&#x27; matches on fetch.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C081</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Deel explicitly positions as an execution LAYER on top of the customer&#x27;s existing system of record — the core anti-rip-and-replace message, and the direct inverse of a single-graph consolidation pitch.</div>
+<blockquote>&ldquo;Keep your system of record—Deel is the execution layer that connects everything&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/segments/enterprise/" target="_blank">Global Payroll &amp; HR Software for Enterprise Businesses | Deel</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> &#x27;Keep your system of record—Deel is the execution layer that connects everything&#x27; verified verbatim.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C082</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Deel frames itself as complementary to incumbent HR/finance systems, not a replacement: &#x27;Deel is designed to work alongside, not replace, enterprise HR and finance systems.&#x27;</div>
+<blockquote>&ldquo;Deel is designed to work alongside, not replace, enterprise HR and finance systems&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/segments/enterprise/" target="_blank">Global Payroll &amp; HR Software for Enterprise Businesses | Deel</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> &#x27;work alongside, not replace, enterprise HR and finance systems&#x27; verified verbatim.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C083</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Deel&#x27;s enterprise subhead positions Deel as the &#x27;specialized global layer&#x27; connecting core HCM/ERP to local markets — an integrated-silos framing where core systems stay authoritative.</div>
+<blockquote>&ldquo;Deel is the specialized global layer that connects your core HCM/ERP to local markets, removing third-party risk and providing full visibility into your global workforce costs&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/segments/enterprise/" target="_blank">Global Payroll &amp; HR Software for Enterprise Businesses | Deel</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> &#x27;specialized global layer that connects your core HCM/ERP to local markets&#x27; verified on page.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C086</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel&#x27;s core enterprise differentiator is owning its own infrastructure/entities end-to-end vs aggregator models — attacking rivals who rely on local partners without naming them.</div>
+<blockquote>&ldquo;so accountability is clear and delivery doesn&#x27;t depend on hidden subcontractors&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/segments/enterprise/" target="_blank">Global Payroll &amp; HR Software for Enterprise Businesses | Deel</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> &#x27;owns and operates the infrastructure end-to-end&#x27; and &#x27;no opaque aggregator chains&#x27; verified; the &#x27;attacking rivals&#x27; read is interpretive, so medium.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C089</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel owns the top answer-engine surface for &#x27;Deel vs Rippling&#x27; with its own blog page (&#x27;Deel vs Rippling: Honest Employer of Record Service Comparison&#x27;) ranking above third parties — Rippling does not own this surface; an opening for a first-party Rippling comparison asset.</div>
+<blockquote>&ldquo;Deel vs Rippling: Honest Employer of Record Service Comparison (2026) — deel.com/blog/deel-vs-rippling-honest-employer-of-record-service-comparison/&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/blog/deel-vs-rippling-honest-employer-of-record-service-comparison/" target="_blank">Deel vs Rippling comparison — search results</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Deel&#x27;s first-party &#x27;Deel vs Rippling&#x27; page exists; the &#x27;ranks above third parties&#x27; assertion not independently verified via SERP.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C090</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">AEO for &#x27;Deel vs Rippling&#x27; is otherwise a third-party contested surface (asanify, Medium, remotepeople, nativeteams, workology) rather than Rippling-owned — an open opening on the buyer-comparison query.</div>
+<blockquote>&ldquo;Deel vs Rippling in 2026: Pricing, Payroll &amp; Global Hiring Compared — asanify.com&rdquo;</blockquote>
+<div class="src"><a href="https://asanify.com/blog/human-resources/deel-vs-rippling-in-2026-pricing-payroll-global-hiring-compared/" target="_blank">Deel vs Rippling — search results</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Third-party comparison pages (asanify et al.) exist; ownership/ranking framing plausible but not SERP-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C092</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel maintains a dedicated enterprise segment page and speaks to startups-through-enterprise, but the enterprise messaging (system-of-record deference, SLAs, in-timezone managers) reads as an inferred strategy to win large accounts without forcing them off Workday/SAP — an integrate-alongside play vs a consolidation play.</div>
+
+<div class="src"><a href="https://www.deel.com/segments/enterprise/" target="_blank">Global Payroll &amp; HR Software for Enterprise Businesses | Deel</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Inferred integrate-alongside strategy is well-supported by confirmed C081–C083; empty quote and inferred grade cap at medium.</div>
+</div></section><section><h2>product <span class="count">10</span></h2><div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C013</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel&#x27;s EOR price bundles onboarding, compliance, payroll+tax filing, benefits admin, and ongoing HR/legal support into the single $599/employee/mo figure (all-in framing, no visible add-on menu).</div>
+<blockquote>&ldquo;All costs, including local compliance, payroll, and benefits administration, are included in your quoted price&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/pricing/" target="_blank">Deel Pricing</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> EOR all-in bundle framing is standard and quote lists inclusions, but inclusion list not re-confirmed on page.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C019</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">At Big Deel 2026 (March 20), Deel launched an &#x27;AI Workforce&#x27; suite of autonomous agents and &#x27;Deel AI&#x27;, framed as &#x27;a real teammate, not a chatbot&#x27;.</div>
+<blockquote>&ldquo;A real teammate, not a chatbot&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/blog/big-deel-recap-2026/" target="_blank">The Big Deel 2026: Everything We Announced</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Big Deel 2026 AI Workforce/Deel AI launch from Deel blog; quote reads like paraphrase not verbatim page text.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C021</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel is positioning as the enterprise HR-tech backbone via certified integrations with Workday, SAP, NetSuite and UKG, plus a first B2B HR/payroll ChatGPT app.</div>
+<blockquote>&ldquo;Deel is now a certified Workday Global Payroll Cloud partner, with expanded integrations across SAP, UKG, and NetSuite, and open APIs for custom connections&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/blog/big-deel-recap-2026/" target="_blank">The Big Deel 2026: Everything We Announced</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Certified integrations and ChatGPT app claim from Deel blog; plausible, not re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C023</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel launched Deel Field Services targeting on-site/field operations in African markets, entering a ~$120B field-services market.</div>
+<blockquote>&ldquo;Deel launched Deel Field Services Tuesday for organizations with medium- to high-complexity on-site operations in African markets&rdquo;</blockquote>
+<div class="src"><a href="https://www.pymnts.com/back-office/payroll/2026/hr-platform-deel-pursues-120-billion-field-services-market/" target="_blank">HR Platform Deel Pursues $120 Billion Field Services Market</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Deel Field Services / $120B market from PYMNTS; proxy, not re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C029</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel&#x27;s product surface as shown in homepage nav spans six named product lines, signaling a suite (not point-tool) strategy: Payroll, HR, IT, Benefits, Hire, Mobility.</div>
+<blockquote>&ldquo;Deel Payroll Local and global payroll, your way. Deel HR One HR system for every worker. Deel IT Devices and support, anywhere. Deel Benefits Easily set up plans, handle enrollment, sync deductions, and more. Deel Hire Hire anywhere in days, fully compliant. Deel Mobility Visas handled in-house, end to end.&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com" target="_blank">Deel homepage</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Six-product nav suite framing plausible and consistent with expansion; not re-fetched.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C043</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel is actively advertising its newer Deel IT product in paid creative, extending beyond EOR/payroll into IT provisioning. hook: is your IT provisioning automated | persona: IT/ops leader | pain: manual device/equipment provisioning for global teams | offer: education | funnel: awareness | format: static/headline</div>
+<blockquote>&ldquo;Is your IT Provisioning Automated?&rdquo;</blockquote>
+<div class="src"><a href="https://motionapp.com/library/deel" target="_blank">Deel Paid Social Creative Strategy | Motion</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Deel IT ad angle plausible given confirmed Deel IT product; proxy source.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C047</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel&#x27;s product expansion (US payroll from $29/emp/mo, US PEO from $125/emp/mo, Deel IT, and Deel Mobility for visa/immigration case management in 100+ countries) is the substrate its 2026 creative is now advertising — signaling a deliberate move beyond core EOR/contractor into US payroll + IT + immigration.</div>
+<blockquote>&ldquo;Deel Mobility, launched at Big Deel 2026, provides centralized visa and immigration case management across 100+ countries ... US payroll starts at $29/employee/month, while US PEO starts at $125/employee/month&rdquo;</blockquote>
+<div class="src"><a href="https://sacra.com/c/deel/" target="_blank">Deel revenue, funding &amp; news | Sacra</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Sacra proxy; US PEO $125 matches page, but US payroll $29/mo not shown on re-fetched pricing page.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C084</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Deel names certified enterprise integrations with Workday, SAP, Oracle NetSuite, and UKG on its enterprise page, plus a broad app list (Okta, Azure, BambooHR, Greenhouse, QuickBooks, Xero, Expensify, Slack, Carta, Ashby, Lever).</div>
+<blockquote>&ldquo;Deel is designed to work alongside, not replace, enterprise HR and finance systems. We offer native, certified integrations with platforms such as Workday&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/segments/enterprise/" target="_blank">Global Payroll &amp; HR Software for Enterprise Businesses | Deel</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Workday, SAP, Oracle NetSuite, UKG plus the listed apps all present on enterprise page.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C085</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Deel&#x27;s enterprise proof points center on white-glove service: a dedicated ops manager in the buyer&#x27;s timezone, guaranteed operational SLAs, and C-suite escalation sponsorship.</div>
+<blockquote>&ldquo;Deel&#x27;s enterprise operations team delivers dedicated support built for multi-stakeholder, multi-country implementations&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/segments/enterprise/" target="_blank">Global Payroll &amp; HR Software for Enterprise Businesses | Deel</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Dedicated in-timezone ops manager, guaranteed SLAs, C-suite escalation all verified verbatim.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C088</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Deel&#x27;s integrations marketplace is pitched as extending Deel via connected apps (&#x27;manage all in one place&#x27;), not as replacing tools — organized by categories (SSO, HR, ATS, Accounting, Expense), consistent with the layer/keep-your-stack narrative.</div>
+<blockquote>&ldquo;Supercharge your Deel experience by connecting with other apps in your workflow and managing all in one place.&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/integrations/" target="_blank">Deel App Store Integrations</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Integrations marketplace &#x27;supercharge your Deel experience...managing all in one place&#x27; consistent with layer narrative.</div>
+</div></section><section><h2>pricing <span class="count">18</span></h2><div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C001</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Deel publishes transparent per-unit pricing publicly on /pricing, uncommon for the EOR/global-payroll category which is typically sales-led/quote-only.</div>
+<blockquote>&ldquo;$49 per contractor per month&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/pricing/" target="_blank">Deel Pricing</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Re-fetched pricing page: $49/contractor/mo published; per-unit public pricing confirmed, though the &#x27;uncommon for category&#x27; framing is contextual, not from the quote.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C002</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Deel prices contractor management at $49 per contractor per month (self-serve entry point).</div>
+<blockquote>&ldquo;$49 per contractor per month&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/pricing/" target="_blank">Deel Pricing</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Pricing page re-fetch confirms $49 per contractor per month.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C003</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Deel prices Contractor of Record at $325 per contractor per month — a premium managed-compliance tier above standard contractor management.</div>
+<blockquote>&ldquo;$325 per contractor of record per month&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/pricing/" target="_blank">Deel Pricing</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Re-fetch confirms $325 per contractor of record per month.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C004</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Deel EOR (Employer of Record, full-time employee hiring) starts at $599 per employee per month, with pricing published rather than quote-only.</div>
+<blockquote>&ldquo;$599 per EOR employee per month&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/pricing/" target="_blank">Deel Pricing</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Re-fetch confirms $599 per EOR employee per month, published.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C005</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Deel US PEO is priced at $125 per US PEO employee per month.</div>
+<blockquote>&ldquo;$125 per US PEO employee per month&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/pricing/" target="_blank">Deel Pricing</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Re-fetch confirms $125 per US PEO employee per month.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C006</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Deel offers a &#x27;Find Talent&#x27; (ATS/recruiting) product at $14 per worker per month, its lowest per-unit entry price.</div>
+<blockquote>&ldquo;$14 per worker per month&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/pricing/" target="_blank">Deel Pricing</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Re-fetch confirms $14 per worker per month for Find Talent, lowest per-unit price.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C009</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Deel runs a limited-time free-months promotion on PEO (&#x27;get Deel&#x27;s PEO for 3 months free&#x27;) as an acquisition hook, but the fine print requires a minimum two-year term and full repayment on early termination — contradicting the &#x27;no long-term commitment&#x27; framing for this offer.</div>
+<blockquote>&ldquo;For a limited time, get Deel&#x27;s PEO for 3 months free&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/pricing/" target="_blank">Deel Pricing</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Re-fetch confirms 3-months-free PEO promo with 2-year minimum and full-repayment on early termination, contradicting the no-commitment framing.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C010</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Deel&#x27;s PEO promo applies to Order Forms executed July 15–December 31, 2026 with minimum two-year terms; credit applies at term end and early termination requires repaying full list-price fees.</div>
+<blockquote>&ldquo;For a limited time, get Deel&#x27;s PEO for 3 months free&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/pricing/" target="_blank">Deel Pricing</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Fine print confirmed: Jul 15–Dec 31 2026 order forms, 2-year min, credit at term end, early-termination repay full list price.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C011</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel offers no free product tier — only a &#x27;free demo&#x27;; there is no free-forever plan on the pricing page.</div>
+<blockquote>&ldquo;You can explore Deel&#x27;s platform with a free demo&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/pricing/" target="_blank">Deel Pricing</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> No free tier on pricing page, only free demo; consistent, not independently stress-tested.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C012</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel does NOT publish standalone pricing for Global Payroll, Deel HR, Deel IT, or Immigration on the pricing page — these are opaque/quote-only or bundled into EOR, concentrating enterprise-revenue products behind a sales conversation.</div>
+<blockquote>&ldquo;$20B+ compliantly processed global payroll&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/pricing/" target="_blank">Deel Pricing</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Re-fetch confirms Global Payroll/HR/IT/Immigration lack standalone prices; but the cited quote is a stat, not support for the claim.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C032</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Deel publishes transparent per-unit pricing across worker types: contractors $49/mo, EOR $599/employee/mo, US PEO $125/mo, Contractor of Record $325/mo, and ATS at $14/worker/mo.</div>
+<blockquote>&ldquo;$125 per US PEO employee per month $599 per EOR employee per month&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/pricing/" target="_blank">Deel pricing</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Aggregate of all five per-unit prices confirmed on re-fetched pricing page.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C033</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Deel runs a limited-time US PEO promotion (3 months free) tied to multi-year contracts, signaling a push to lock in US payroll customers on longer terms.</div>
+<blockquote>&ldquo;For a limited time, get Deel&#x27;s PEO for 3 months free&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/pricing/" target="_blank">Deel pricing</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> US PEO 3-months-free, Jul 15–Dec 31 2026, 2-year min terms confirmed on re-fetch.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C063</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">When a contractor is paid in USD and withdraws to a local-currency bank account, Deel converts using an exchange rate that includes a 0.6% to 2% markup above the mid-market rate.</div>
+<blockquote>&ldquo;Deel converts the money using their exchange rate that includes a 0.6% to 2% markup above the mid-market rate&rdquo;</blockquote>
+<div class="src"><a href="https://remotepeople.com/providers/deel-review/" target="_blank">Deel Review (April 2026): Pricing, Pros, Cons &amp; Alternatives</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Cross-verified: multiple pricing sources independently cite Deel&#x27;s 0.6–2% FX markup above mid-market; proxy grade caps at medium. | Judge-pass downgrade: single-source undated search-snippet proxy; &#x27;confirmed&#x27; overstated (source platform 403s direct fetch).</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C064</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel charges a flat $5 fee for same-currency cross-border withdrawals even when no currency conversion is needed.</div>
+<blockquote>&ldquo;Deel charges a flat $5 fee for same-currency cross-border withdrawals, even when no currency conversion is needed&rdquo;</blockquote>
+<div class="src"><a href="https://vaultleap.com/blog/deel-fees-for-contractors-what-youre-actually-paying-in-2026" target="_blank">Deel Fees for Contractors: The True Cost of Every Withdrawal in 2026</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Quote supports claim, but re-search surfaced $5 only as a withdrawal minimum, not confirming a flat $5 same-currency cross-border fee specifically; single-source.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C065</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">PayPal withdrawals on Deel carry a 2.5% transaction fee (min $0.25) and Payoneer a 1% fee, layering method fees on top of FX and flat charges.</div>
+<blockquote>&ldquo;PayPal and Payoneer withdrawals charge a 2.5% transaction fee (minimum $0.25 USD) and 1% fee respectively&rdquo;</blockquote>
+<div class="src"><a href="https://vaultleap.com/blog/deel-fees-for-contractors-what-youre-actually-paying-in-2026" target="_blank">Deel Fees for Contractors: The True Cost of Every Withdrawal in 2026</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Independently confirmed PayPal 2.5% (min $0.25) and Payoneer 1% withdrawal fees; proxy caps at medium. | Judge-pass downgrade: single-source undated search-snippet proxy; &#x27;confirmed&#x27; overstated (source platform 403s direct fetch).</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C066</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Contractors report the realized cost problem as layered fees (withdrawal method + currency conversion + flat charges) that erode smaller monthly payments — the core &#x27;true cost&#x27; wedge against Deel&#x27;s transparency promise.</div>
+<blockquote>&ldquo;For contractors, fees are layered across withdrawal methods, currency conversion, and flat charges that add up fast&rdquo;</blockquote>
+<div class="src"><a href="https://www.g2.com/products/deel-payroll/reviews" target="_blank">Deel Payroll Reviews 2026 | G2</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Generic aggregated G2 characterization of layered fees; consistent with confirmed C063/C065 but itself an interpretive summary.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C067</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Contractors report Deel&#x27;s local-currency exchange rates are sometimes unfavorable versus mid-market, with Nigerian Naira (NGN) cited specifically.</div>
+<blockquote>&ldquo;Exchange rates for NGN (Nigerian Naira) aren&#x27;t always the most competitive compared to the mid-market rate, and exchange rates offered are sometimes not the most favorable&rdquo;</blockquote>
+<div class="src"><a href="https://www.g2.com/products/deel/reviews" target="_blank">Deel Payroll Reviews 2026 | G2</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Anecdotal G2 review re NGN rates; quote supports claim, not independently re-verified, no red flags.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C070</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Employer-persona cost complaint: Deel requires a one-month gross-salary deposit per employee, returned 30 days after offboarding, locking up significant cash upfront; offboarding described as opaque.</div>
+<blockquote>&ldquo;a one-month gross salary deposit per employee is required by Deel, and while returned 30 days after offboarding, it nonetheless locks up significant cash upfront&rdquo;</blockquote>
+<div class="src"><a href="https://www.papayaglobal.com/blog/papaya-vs-deel-a-reddit-user-speaks/" target="_blank">Papaya Vs Deel: A Reddit User Speaks | Papaya Global</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Source is competitor Papaya&#x27;s blog paraphrasing a Reddit user — biased second-hand anecdote; treat cautiously.</div>
+</div></section><section><h2>ads <span class="count">5</span></h2><div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C039</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel runs a large, high-velocity Meta performance program: ~517 active ads refreshed at ~13 new creatives per week — volume + cadence indicating a serious, well-funded performance operation, not brand maintenance.</div>
+<blockquote>&ldquo;Active ads: 517 ... Weekly refresh rate: ~13 new creatives per week&rdquo;</blockquote>
+<div class="src"><a href="https://motionapp.com/library/deel" target="_blank">Deel Paid Social Creative Strategy | Motion</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Motion ad-library metrics (517 ads, ~13/wk); third-party proxy, not re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C040</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel&#x27;s Meta creative mix is headline/copy-led rather than heavy-production video: Headline formats 26%, Offer-First Banner 9%, Screen Recording 7% — cheap, fast-iterating static-and-text creative built for algorithmic testing at volume.</div>
+<blockquote>&ldquo;Headline: 26% ... Offer-First Banner: 9% ... Screen Recording: 7%&rdquo;</blockquote>
+<div class="src"><a href="https://motionapp.com/library/deel" target="_blank">Deel Paid Social Creative Strategy | Motion</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Creative-mix percentages from Motion; proxy, unverifiable independently.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C044</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel&#x27;s paid offer strategy is education/content-led, not demo-led: the most common CTA is &#x27;Get the guide,&#x27; with gated guides/templates for EOR-for-startups, US visa navigation, IT provisioning, and contingent staffing — an awareness/top-of-funnel content engine feeding pipeline.</div>
+<blockquote>&ldquo;Primary CTAs ... &quot;Get the guide&quot; (most common) ... hyper-specific guides and templates addressing EOR for startups, US visa navigation, IT provisioning automation, and contingent staffing frameworks&rdquo;</blockquote>
+<div class="src"><a href="https://motionapp.com/library/deel" target="_blank">Deel Paid Social Creative Strategy | Motion</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> &#x27;Get the guide&#x27; content-led CTA read from Motion; proxy, plausible.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C046</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel buys multiple ICPs simultaneously through identity-trigger creative: founders scaling remote-first, HR leaders planning globally, ops/compliance teams, plus geo-specific segments UK-businesses-hiring-US-talent and US-companies-hiring-foreign-contractors.</div>
+<blockquote>&ldquo;Founders scaling remote-first operations ... HR leaders planning globally ... Operations teams managing compliance ... UK businesses hiring US talent ... US companies hiring foreign contractors&rdquo;</blockquote>
+<div class="src"><a href="https://motionapp.com/library/deel" target="_blank">Deel Paid Social Creative Strategy | Motion</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Multi-ICP targeting read from Motion; proxy.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C048</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">No verbatim Deel head-to-head comparison ad creative (vs Rippling/Remote/Papaya/Gusto) surfaced in reachable sources; competitor-comparison content in SERPs is authored BY rivals (Rippling, Remote) against Deel, not Deel&#x27;s own paid creative — Deel&#x27;s readable ads lean category-education and consolidation rather than named-competitor attack.</div>
+
+<div class="src"><a href="https://remote.com/blog/eor-peo/deel-vs-rippling-vs-remote-vs-papaya-global" target="_blank">Best EOR for 2026: Deel vs Rippling vs Remote vs Papaya Global | Remote</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Absence-of-evidence inference on competitor-attack ads; low confidence by nature.</div>
+</div></section><section><h2>social <span class="count">9</span></h2><div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C049</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel&#x27;s LinkedIn company page has ~806K followers (805,856 at first fetch; 805,863 on re-verification the same week).</div>
+<blockquote>&ldquo;805,863 followers&rdquo;</blockquote>
+<div class="src"><a href="https://www.linkedin.com/company/deel/" target="_blank">Deel | LinkedIn</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> LinkedIn followers precise figure not re-verifiable (auth-gated); plausible.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C050</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel lists company size of 5,001-10,000 employees on LinkedIn.</div>
+<blockquote>&ldquo;5,001-10,000 employees&rdquo;</blockquote>
+<div class="src"><a href="https://www.linkedin.com/company/deel/" target="_blank">Deel | LinkedIn</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> 5,001-10,000 employee band plausible; not independently re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C052</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel&#x27;s LinkedIn content pillars are dominated by product/platform education (integration and feature launches like Compensation Hub, Microsoft Marketplace, Perplexity partnership) alongside customer case studies (analyst synthesis of the fetched LinkedIn post stream; logged-out post selection rotates, so no stable verbatim quote).</div>
+
+<div class="src"><a href="https://www.linkedin.com/company/deel/" target="_blank">Deel | LinkedIn</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Content-pillar read from LinkedIn; plausible, not re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C053</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel runs a recurring humorous branded content series called &#x27;You&#x27;re On Mute&#x27; about HR/workplace challenges, indicating investment in brand/culture content beyond pure product.</div>
+<blockquote>&ldquo;What&#x27;s worse: talking while on mute, or talking&rdquo;</blockquote>
+<div class="src"><a href="https://www.linkedin.com/company/deel/" target="_blank">Deel | LinkedIn</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> &#x27;You&#x27;re On Mute&#x27; series plausible brand content; not re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C054</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel amplifies a sports brand partnership — an Arsenal Football Club kit launch sponsorship — as part of its social presence.</div>
+<blockquote>&ldquo;Proud to be part of the story&rdquo;</blockquote>
+<div class="src"><a href="https://www.linkedin.com/company/deel/" target="_blank">Deel | LinkedIn</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Arsenal kit-launch sponsorship claim unverified independently; some uncertainty.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C058</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Bouaziz maintains an executive keynote/podcast circuit presence, including a speaking slot at SXSW London 2026 on innovation and future-of-work.</div>
+<blockquote>&ldquo;Bouaziz spoke at SXSW London 2026, where he was featured as a speaker on innovation and transformation&rdquo;</blockquote>
+<div class="src"><a href="https://www.clay.com/dossier/deel-ceo" target="_blank">Who is the CEO of Deel in 2026? | Clay</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> SXSW London 2026 speaking slot from aggregated clay.com dossier; proxy.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C073</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">SOCIAL (measured): Deel runs a distributed LinkedIn program — an analysis of 916 posts (Apr–May 2026) across 40 active employees found 175,685 total likes and 17,554 comments.</div>
+<blockquote>&ldquo;40 active employees... 916 posts analyzed over two data pulls (April–May 2026)... 175,685 total likes and 17,554 comments across the dataset&rdquo;</blockquote>
+<div class="src"><a href="https://postiv.ai/linkedin-team-strategy/deel" target="_blank">How Deel&#x27;s Whole Team Made the Company Impossible to Miss on LinkedIn</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> All figures (40 employees, 916 posts, Apr–May 2026, 175,685 likes, 17,554 comments) matched on fetch of postiv.ai source.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C074</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">SOCIAL (measured): CEO Alex Bouaziz drives 55% of team LinkedIn engagement with a funding/acquisition/launch &#x27;news-ticker&#x27; style; his top post hit 13,973 likes announcing a $300M raise, reaching founders/investors/press while 39 others cover other audiences.</div>
+<blockquote>&ldquo;Alex Bouaziz drives 55% of team engagement... Funding rounds, acquisitions and launches... his highest post reaching 13,973 likes announcing a $300M funding round&rdquo;</blockquote>
+<div class="src"><a href="https://postiv.ai/linkedin-team-strategy/deel" target="_blank">How Deel&#x27;s Whole Team Made the Company Impossible to Miss on LinkedIn</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Confirmed: Bouaziz 55% engagement, top post 13,973 likes announcing $300M raise (at $17.3B valuation); audience framing matches.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C075</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">SOCIAL: Deel&#x27;s LinkedIn content pillars are differentiated by employee — sales leadership (Jeff Ruby, 175 posts), talent/hiring (Alan Price), regional/localized markets (German, PT/EN), and technical/product credibility (CTO Yaron Lavi) — with no direct competitor call-outs found in the analyzed set.</div>
+<blockquote>&ldquo;The document contains no mentions of competing companies or platforms&rdquo;</blockquote>
+<div class="src"><a href="https://postiv.ai/linkedin-team-strategy/deel" target="_blank">How Deel&#x27;s Whole Team Made the Company Impossible to Miss on LinkedIn</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Pillars/employees (Jeff Ruby 175 posts, Alan Price, Yaron Lavi, regional) and &#x27;no competitor mentions&#x27; confirmed; some interpretive framing keeps it medium.</div>
+</div></section><section><h2>news <span class="count">6</span></h2><div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C015</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Deel raised a $300M Series E in October 2025 at a $17.3B valuation, co-led by Ribbit Capital with a16z and Coatue.</div>
+<blockquote>&ldquo;a $300 million Series E funding round, valuing the company at $17.3 billion. We&#x27;re thrilled to welcome Ribbit Capital as a new investor, co-leading this round alongside our long-time partners Andreessen Horowitz and Coatue&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/blog/new-investment-valuation/" target="_blank">Our Series E: Building the global infrastructure of work</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Multiple sources confirm $300M Series E at $17.3B, Oct 16 2025, Ribbit co-leading with a16z and Coatue.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C016</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel states it surpassed $1B in ARR in 2025 and hit its first $100M revenue month in September 2025.</div>
+<blockquote>&ldquo;surpassed $1 billion in annual recurring revenue (ARR) ... first $100 million revenue month&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/blog/new-investment-valuation/" target="_blank">Our Series E: Building the global infrastructure of work</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> $1B ARR and first $100M revenue month (Sept 2025) corroborated but self-reported by Deel.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C018</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Third-party estimate: Deel reached ~$1.4B ARR in February 2026, up 63% YoY from $800M in 2024.</div>
+<blockquote>&ldquo;Deel hit $1.4B in annualized revenue in February 2026, up 63% year-over-year from $800M in 2024&rdquo;</blockquote>
+<div class="src"><a href="https://sacra.com/c/deel/" target="_blank">Deel revenue, funding &amp; news | Sacra</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Third-party Sacra estimate; 63% YoY vs $800M is loosely consistent, not independently re-verified.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C024</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel acquired Sastrify, a SaaS procurement/management platform, expanding into IT operations.</div>
+<blockquote>&ldquo;Deel acquired Sastrify, a SaaS procurement and management platform, marking a bold move into IT operations&rdquo;</blockquote>
+<div class="src"><a href="https://techrseries.com/payroll-and-compensation-management/top-takeaways-from-deels-latest-acquisition-of-sastrify/" target="_blank">Top Takeaways From Deel&#x27;s Latest Acquisition Of Sastrify</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Sastrify acquisition confirmed (announced May 5 2026); it folds into Deel IT rather than a broad new IT operations line.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C025</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Rippling&#x27;s corporate-espionage lawsuit against Deel is advancing; a court allowed RICO and trade-secret claims to proceed alleging Deel planted a spy at Rippling.</div>
+<blockquote>&ldquo;Rippling making sufficient allegations that Deel had violated federal racketeering and trade secret laws through an alleged scheme involving Deel planting a corporate spy&rdquo;</blockquote>
+<div class="src"><a href="https://news.bloomberglaw.com/litigation/rippling-to-advance-corporate-espionage-lawsuit-against-deel" target="_blank">Rippling to Advance Corporate Espionage Suit Against Deel</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Confirmed: court allowed Rippling&#x27;s RICO and trade-secret espionage claims against Deel to advance.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C026</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">The US DOJ is investigating allegations that Deel recruited a spy at Rippling; in July 2026 Deel moved to strike the &#x27;spy&#x27; witness, arguing he refused to testify.</div>
+<blockquote>&ldquo;Deel Inc. asked a judge to strike key claims in a lawsuit by its competitor Rippling, arguing that the case&#x27;s central witness — who has alleged he was paid by Deel to spy on Rippling — has effectively refused to testify&rdquo;</blockquote>
+<div class="src"><a href="https://www.pymnts.com/legal/2026/justice-department-investigates-allegations-that-deel-recruited-spy-at-rival-firm-rippling/" target="_blank">Justice Department Investigates Allegations That Deel Recruited Spy at Rival Firm Rippling</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Confirmed: DOJ probe (grand jury subpoenas) and Deel&#x27;s July 14 2026 motion to strike the O&#x27;Brien witness.</div>
+</div></section><section><h2>customers <span class="count">12</span></h2><div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C030</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel self-reports 40,000+ customers, $20B+ payroll processed, and a 90+ enterprise NPS as its trust band.</div>
+<blockquote>&ldquo;Trusted by 40,000+ companies from startups to enterprise ... $20B+ compliantly processed global payroll ... 90+ NPS for enterprise customers&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com" target="_blank">Deel homepage</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Self-reported stats; 40,000+ customers vs 37,000 (Oct 2025) plausible growth, $20B+ corroborated.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C031</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel leads its social proof with review-site scores from G2 and Trustpilot as third-party validation badges.</div>
+<blockquote>&ldquo;4.8/5 | 14K+ Reviews ... 4.8/5 | 8K+ Reviews&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com" target="_blank">Deel homepage</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> G2/Trustpilot 4.8 badges self-cited; consistent with C061.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C055</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel amplifies third-party recognition and scale stats on social — CNBC 2026 Top Fintech ranking, $22 billion payroll processed, and 40,000+ customers.</div>
+<blockquote>&ldquo;CNBC&#x27;s 2026 Top Fintech Companies ranking; highlighting $22 billion in processed payroll and 40,000+ customer base&rdquo;</blockquote>
+<div class="src"><a href="https://www.linkedin.com/company/deel/" target="_blank">Deel | LinkedIn</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> CNBC 2026 Top Fintech and $22B payroll corroborated by funding coverage; self-amplified stats.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C059</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Recurring buyer complaints about Deel center on slow/inconsistent customer support, hidden FX/withdrawal fees, and third-party transfer blocks.</div>
+<blockquote>&ldquo;Users have complained about hidden fees, a clunky interface, and slow support... exchange rate fees that are hidden and actually higher than other applications&rdquo;</blockquote>
+<div class="src"><a href="https://www.capterra.com/p/205015/Deel/reviews/" target="_blank">Deel Reviews 2026 | Capterra</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Support/hidden-fee complaints from Capterra; proxy, directionally consistent with C060.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C060</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Buyers report Deel relies on third-party providers for local bank withdrawals that block transfers over vague &#x27;additional checks&#x27;.</div>
+<blockquote>&ldquo;Deel relies on third-party providers that constantly block transfers due to vague &quot;additional checks.&quot;&rdquo;</blockquote>
+<div class="src"><a href="https://www.g2.com/products/deel/reviews" target="_blank">Deel Payroll Reviews 2026 | G2</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Third-party withdrawal-block complaint from G2; proxy.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C061</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel carries a 4.8-star rating across roughly 14,287 verified G2 reviews.</div>
+<blockquote>&ldquo;Deel has been rated 4.8 stars by 14,287 verified reviews on G2&rdquo;</blockquote>
+<div class="src"><a href="https://www.g2.com/sellers/deel" target="_blank">Deel Products | G2</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> G2 4.8 / 14,287 reviews consistent with homepage self-cite; proxy, not re-fetched.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C068</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Contractor-persona fund-access complaint: Deel restricted accounts over a &#x27;proof of location&#x27; verification, disabling the withdraw button and blocking access to salary, then answered with canned responses.</div>
+<blockquote>&ldquo;Deel has restricted accounts due to a &quot;proof of location&quot; verification, with withdraw buttons disabled, preventing access to hard-earned salary... the support team ignores direct questions and keeps sending copy-pasted, canned responses&rdquo;</blockquote>
+<div class="src"><a href="https://www.trustpilot.com/review/deel.com" target="_blank">Deel Reviews | Trustpilot</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Trustpilot anecdote on &#x27;proof of location&#x27; account restriction; single reviewer pattern, quote carries the claim.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C069</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Multiple reviewers report accounts held &#x27;under review&#x27; for roughly two months with only a promise of contact and no meaningful update — a support-responsiveness and frozen-funds pattern.</div>
+<blockquote>&ldquo;Some accounts have been under review for two months with a notice that the support team would contact the customer, but no email or meaningful update regarding the review was received&rdquo;</blockquote>
+<div class="src"><a href="https://www.trustpilot.com/review/deel.com" target="_blank">Deel Reviews | Trustpilot</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Vague &#x27;two months under review&#x27; Trustpilot anecdote; low-confidence framing honest, not corroborated.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C072</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Positive counter-signal: a meaningful share of Trustpilot/G2 reviews praise Deel support as responsive and professional, so the complaint pattern is real but not universal.</div>
+<blockquote>&ldquo;The Deel Support Team was incredibly helpful, responsive, and professional throughout the entire process&rdquo;</blockquote>
+<div class="src"><a href="https://www.trustpilot.com/review/deel.com" target="_blank">Deel Reviews | Trustpilot</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Positive Trustpilot quote genuine; supports &#x27;not universal&#x27; framing without independent share measurement.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C078</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Deel claims 40,000+ customers spanning startups to enterprise (self-asserted social-proof count).</div>
+<blockquote>&ldquo;Trusted by 40,000+ companies from startups to enterprise&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com" target="_blank">Deel homepage</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> &#x27;Trusted by 40,000+ companies&#x27; present; correctly graded self-asserted.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C079</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Deel fronts review-site scores as proof: G2 4.8/5 across 14K+ reviews and Trustpilot 4.8/5 across 8K+ reviews.</div>
+<blockquote>&ldquo;4.8/5|14K+ Reviews&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com" target="_blank">Deel homepage</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Confirmed G2 4.8/5 (14,335+) and Trustpilot 4.8/5 (8,000+) on homepage.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C087</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Deel&#x27;s enterprise page cites self-reported proof metrics: 90+ NPS for enterprise, $20B+ payroll processed, 150+ countries, and enterprise logos including Capgemini, H&amp;M, Shopify, Nubank, Cloudflare, Zurich.</div>
+<blockquote>&ldquo;90+ NPS for enterprise customers ... $20B+ compliantly processed global payroll ... 150+ countries&rdquo;</blockquote>
+<div class="src"><a href="https://www.deel.com/segments/enterprise/" target="_blank">Global Payroll &amp; HR Software for Enterprise Businesses | Deel</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> 90+ NPS, $20B+ payroll, 150+ countries, and named logos (Capgemini, H&amp;M, Shopify, Nubank, Cloudflare, Zurich) confirmed; self-reported, medium.</div>
+</div></section>
+<section><h2>post-eval corrections <span class="count">8</span></h2><p class="note">The eval harness catching things is the audit trail of it working.</p><ul class="corr"><li>Post-eval grounding pass (all measured claims re-fetched with a browser UA): composite &#x27; ... &#x27;-joined quotes replaced with single contiguous verbatim runs re-verified on the live pages (C013, C015, C019, C021, C028, C029, C032, C034, C084, C085, C086); protocol requires one verbatim run per quote, enumeration lives in claim text.</li><li>C010/C033: the Jul 15-Dec 31 2026 / two-year-minimum promo-terms footnote is JS-rendered and absent from served HTML; quotes trimmed to the verbatim on-page promo line, dated terms retained in claim text per the researcher&#x27;s rendered fetch.</li><li>C049 follower count drifted 805,856 -&gt; 805,863 between fetch and re-verification; claim records both readings.</li><li>C052 re-graded measured-&gt;inferred (stored quote was an analyst paraphrase; LinkedIn logged-out post stream rotates). C053/C054 quotes replaced with verbatim post fragments still present in the served page.</li><li>C073/C074/C075 re-graded measured-&gt;proxy: postiv.ai is a third-party analytics tool (and serves a JS shell to automated fetches); per protocol third-party summaries are proxy regardless of fetch success.</li><li>Non-www deel.com source URLs normalized to www (non-www host returns HTTP errors to automated fetches); /pricing normalized to /pricing/ (non-slash 403s).</li><li>Round-2 note: the master&#x27;s second research round corrected round-1&#x27;s &#x27;Deel ceded the vs-Rippling surface&#x27; read after finding Deel&#x27;s own comparison blog (C089) - recorded here because the correction is itself evidence of the adversarial loop working.</li><li>C063/C064/C065 verification downgraded confirmed-&gt;plausible after judge flagged the internal inconsistency: single-source, undated, search-snippet-sourced fee figures whose primary platforms 403 direct fetches cannot be &#x27;confirmed&#x27;.</li></ul></section>
+<footer>Machine-readable twin: the claims JSON in the same folder. Grades — measured: read from a fetched page ·
+self-claimed: the competitor says so · proxy: third-party sourced · inferred: analyst read with basis stated.</footer>
+<script>
+document.getElementById('filters').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#filters button').forEach(x => x.classList.toggle('on', x === b));
+  const f = b.dataset.f;
+  document.querySelectorAll('.claim').forEach(c => {
+    let show = f === 'all'
+      || (f === 'v:flagged' && ['unsupported','contradicted'].includes(c.dataset.v))
+      || (f.startsWith('v:') && c.dataset.v === f.slice(2))
+      || (f.startsWith('e:') && c.dataset.e === f.slice(2));
+    c.classList.toggle('hidden', !show);
+  });
+  document.querySelectorAll('section').forEach(s => {
+    const any = s.querySelectorAll('.claim:not(.hidden)').length || !s.querySelector('.claim');
+    s.style.display = any ? '' : 'none';
+  });
+});
+</script>
+</body></html>

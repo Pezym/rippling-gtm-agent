@@ -1,0 +1,1202 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BambooHR — claims ledger</title>
+<style>
+  :root { --ink:#1f2328; --dim:#6a737d; --faint:#98a1ab; --line:#e6e8eb; --soft:#f6f7f8;
+          --ok:#0e7a55; --okbg:#e7f5ef; --warn:#8a5a00; --warnbg:#fdf3dc;
+          --bad:#b42318; --badbg:#fdecea; --blue:#0b6bcb; --bluebg:#e8f1fc; }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#e6e8eb; --dim:#9aa4b0; --faint:#6b7480; --line:#2a2f36; --soft:#171a1f;
+             --ok:#4cc596; --okbg:#0d2b20; --warn:#e2b93d; --warnbg:#2c2410;
+             --bad:#f08578; --badbg:#331512; --blue:#6cb0f5; --bluebg:#10233a; }
+    body { background:#0f1114; }
+  }
+  * { box-sizing:border-box; margin:0; }
+  body { font:15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+         color:var(--ink); max-width:860px; margin:0 auto; padding:48px 28px 90px; }
+  h1 { font-size:30px; letter-spacing:-.4px; }
+  .sub { color:var(--dim); margin-top:6px; }
+  .statbar { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 6px; }
+  .stat { border:1px solid var(--line); border-radius:999px; padding:5px 13px; font-size:12.5px; color:var(--dim); }
+  .stat b { color:var(--ink); }
+  .filters { position:sticky; top:0; background:inherit; backdrop-filter:blur(6px);
+             display:flex; flex-wrap:wrap; gap:6px; padding:14px 0; border-bottom:1px solid var(--line);
+             margin-bottom:10px; z-index:5; background-color:rgba(255,255,255,.85); }
+  @media (prefers-color-scheme: dark) { .filters { background-color:rgba(15,17,20,.85); } }
+  .filters button { border:1px solid var(--line); background:none; color:var(--dim); border-radius:999px;
+                    padding:5px 13px; font:inherit; font-size:12.5px; cursor:pointer; }
+  .filters button.on { background:var(--bluebg); color:var(--blue); border-color:var(--blue); }
+  section { margin-top:34px; }
+  h2 { font-size:19px; padding-bottom:8px; border-bottom:1px solid var(--line); margin-bottom:14px;
+       text-transform:capitalize; }
+  .count { color:var(--faint); font-weight:400; font-size:14px; }
+  .claim { border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:12px; }
+  .claim.hidden { display:none; }
+  .head { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:8px; }
+  .cid { font-family:ui-monospace, Menlo, monospace; font-size:12px; color:var(--blue);
+         background:var(--bluebg); border-radius:6px; padding:2px 8px; }
+  .pill { font-size:11.5px; border-radius:999px; padding:2px 10px; }
+  .p-ok { color:var(--ok); background:var(--okbg); }
+  .p-warn { color:var(--warn); background:var(--warnbg); }
+  .p-bad { color:var(--bad); background:var(--badbg); }
+  .p-dim { color:var(--dim); background:var(--soft); }
+  .text { font-size:15px; }
+  blockquote { margin:10px 0 8px; padding:8px 14px; border-left:3px solid var(--line);
+               color:var(--dim); font-style:italic; background:var(--soft); border-radius:0 8px 8px 0; }
+  .src { font-size:12.5px; color:var(--faint); }
+  .src a { color:var(--blue); text-decoration:none; }
+  .vnote { margin-top:8px; font-size:12.5px; color:var(--dim); background:var(--soft);
+           border-radius:8px; padding:7px 11px; }
+  .vnote b { font-weight:600; }
+  .note { color:var(--dim); font-size:13px; margin-bottom:10px; }
+  .corr { padding-left:20px; color:var(--dim); font-size:13.5px; }
+  .corr li { margin-bottom:8px; }
+  footer { margin-top:40px; color:var(--faint); font-size:12.5px; border-top:1px solid var(--line); padding-top:14px; }
+</style></head><body>
+<h1>BambooHR — claims ledger</h1>
+<div class="sub">Every fact behind the brief, with its verbatim quote, source, and how hard it survived verification.
+Generated 2026-07-29 · model claude-opus-4-8</div>
+<div class="statbar">
+  <span class="stat"><b>101</b> claims</span>
+  <span class="stat"><b>34</b> confirmed</span>
+  <span class="stat"><b>64</b> plausible</span>
+  <span class="stat"><b>3</b> flagged</span>
+  <span class="stat"><b>33</b> measured · <b>35</b> proxy ·
+      <b>21</b> self-claimed · <b>12</b> inferred</span>
+</div>
+<div class="filters" id="filters">
+  <button class="on" data-f="all">all</button>
+  <button data-f="v:confirmed">confirmed</button>
+  <button data-f="v:plausible">plausible</button>
+  <button data-f="v:flagged">flagged</button>
+  <button data-f="e:measured">measured</button>
+  <button data-f="e:proxy">proxy</button>
+  <button data-f="e:stated_by_competitor">self-claimed</button>
+  <button data-f="e:inferred">inferred</button>
+</div>
+<section><h2>messaging <span class="count">12</span></h2><div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C003</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">CEO Brad Rencher frames Bamboo AI&#x27;s positioning as augmenting rather than replacing human workers.</div>
+<blockquote>&ldquo;AI should exist to help unlock human capabilities&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/about-bamboohr/press-release/bamboohr-launches-bamboo-ai" target="_blank">BambooHR Introduces Bamboo AI™ (press release)</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Quote verified (actual: &#x27;AI should exist to help unlock human capabilities that actually lead to real business results&#x27;); self-statement so capped at medium.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C006</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR CPO frames the contractor launch around removing tradeoffs between talent access and compliance risk.</div>
+<blockquote>&ldquo;Organizations shouldn&#x27;t have to choose between accessing the best talent and managing global compliance.&rdquo;</blockquote>
+<div class="src"><a href="https://www.globenewswire.com/news-release/2026/06/29/3319267/0/en/BambooHR-Launches-Contractor-Management-the-Latest-Addition-to-its-Global-Employment-Offering.html" target="_blank">BambooHR Launches Contractor Management</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Contractor-launch quote not re-verified but internally consistent competitor statement, no red flags.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C016</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR homepage H1 reads &#x27;BambooHR: The Complete HR Software for People, Payroll &amp; Benefits&#x27; with subhead &#x27;From HR platform to HR partner with Bamboo AI™&#x27;.</div>
+<blockquote>&ldquo;BambooHR: The Complete HR Software for People, Payroll &amp; Benefits / From HR platform to HR partner with Bamboo AI™&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com" target="_blank">BambooHR homepage</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Homepage H1/subhead snapshot not re-fetched; direct-observation claim, low risk but unverified this pass.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C024</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BambooHR was founded in 2008, is led by CEO Brad Rencher alongside co-founders Ben Peterson and Ryan Sanders, and states its mission as &#x27;Set people free to do great work.&#x27;</div>
+<blockquote>&ldquo;Set people free to do great work&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/about" target="_blank">BambooHR About page</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Founded 2008 and Brad Rencher CEO corroborated by search and press releases; co-founders/mission are well-established facts.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C038</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">The BambooHR blog frames its content mission explicitly around helping HR practitioners &#x27;tackle HR with confidence,&#x27; leading with downloadable templates and &#x27;expert insights&#x27; rather than product features, and funnels visitors toward a demo-request form.</div>
+<blockquote>&ldquo;tackle HR with confidence&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/blog" target="_blank">BambooHR Blog</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> &#x27;Tackle HR with confidence&#x27; framing and demo funnel consistent with BambooHR&#x27;s blog; not independently re-fetched.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C079</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR frames the EOR launch as serving small and mid-sized businesses specifically, per Remote co-founder/CEO Job van der Voort&#x27;s quote in the joint press release.</div>
+<blockquote>&ldquo;Small and medium businesses shouldn&#x27;t be locked out of global talent markets because they lack the resources for complex legal infrastructure.&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/about-bamboohr/press-release/bamboohr-eor-remote" target="_blank">BambooHR and Remote Partner to Unlock Easy Global Hiring in Days, Not Months</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Quote clearly frames SMB focus but van der Voort attribution not independently re-verified this pass.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C080</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR&#x27;s own EOR press release cites that 71% of companies expanded internationally last year and 90% plan new market entry by 2030, as justification for the launch.</div>
+<blockquote>&ldquo;71% of companies expanded internationally last year; 90% of companies planning new market entry by 2030&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/about-bamboohr/press-release/bamboohr-eor-remote" target="_blank">BambooHR and Remote Partner to Unlock Easy Global Hiring in Days, Not Months</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Press release confirms the 71% and 90%-by-2030 stats; competitor-cited third-party figures cap at medium.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C082</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BambooHR&#x27;s Chief Product Officer frames Contractor Management as closing a compliance/talent-access gap: &#x27;Organizations shouldn&#x27;t have to choose between accessing the best talent and managing global compliance.&#x27;</div>
+<blockquote>&ldquo;Organizations shouldn&#x27;t have to choose between accessing the best talent and managing global compliance.&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/about-bamboohr/press-release/bamboohr-contractor-management-remote" target="_blank">BambooHR Launches Contractor Management, the Latest Addition to its Global Employment Offering</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> CPO Brian Crofts quote verified verbatim in the contractor-management press release.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C091</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR&#x27;s homepage headline positions it as &#x27;The Complete HR Software for People, Payroll &amp; Benefits.&#x27;</div>
+<blockquote>&ldquo;BambooHR: The Complete HR Software for People, Payroll &amp; Benefits&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/" target="_blank">BambooHR homepage</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Homepage headline wording plausible and consistent with platform positioning, but not re-fetched this session.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C092</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BambooHR frames its AI push as a strategic repositioning from tool to advisor with the tagline &#x27;From HR platform to HR partner with Bamboo AI™.&#x27;</div>
+<blockquote>&ldquo;From HR platform to HR partner with Bamboo AI™&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/" target="_blank">BambooHR homepage</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Homepage carries the tagline verbatim: &#x27;From HR platform to HR partner with Bamboo AI™.&#x27;</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C093</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BambooHR claims a customer base of 30,000 businesses as its trust/scale proof point.</div>
+<blockquote>&ldquo;30,000 businesses&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/" target="_blank">BambooHR homepage</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Homepage states &#x27;30,000 businesses love working with BambooHR&#x27;; quote matches.</div>
+</div>
+<div class="claim" data-v="unsupported" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C094</span>
+<span class="pill p-bad">unsupported</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">BambooHR advertises customer cost outcomes of $70,000-$130,000 in annual savings and a 40% reduction in HR costs.</div>
+<blockquote>&ldquo;Customers report saving $70,000-$130,000 annually and reducing HR costs by 40%&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/" target="_blank">BambooHR homepage</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Quote is a fabricated aggregation — page lists three separate figures ($70k reports, $40k performance, $20k payroll), not a single &#x27;$70,000-$130,000 annually&#x27; outcome; only the &#x27;40%&#x27; is stated.</div>
+</div></section><section><h2>positioning <span class="count">19</span></h2><div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C004</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR CPO Brian Crofts positions Bamboo AI against &#x27;isolated AI features,&#x27; emphasizing governance and integrated context as the differentiator.</div>
+<blockquote>&ldquo;Great AI is only as good as the governance and data behind it&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/about-bamboohr/press-release/bamboohr-launches-bamboo-ai" target="_blank">BambooHR Introduces Bamboo AI™ (press release)</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Governance-as-differentiator framing strongly confirmed in release, though the verbatim &#x27;only as good as the governance and data&#x27; quote wasn&#x27;t surfaced; self-assertion.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C011</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR launched an &#x27;Elite&#x27; package around September 2025 adding compensation management, custom analytics and premium support — read by industry analysts as a deliberate push into the mid-market to retain customers who&#x27;d otherwise migrate to Paycor or Paycom.</div>
+<blockquote>&ldquo;BambooHR Launches Elite Package – A Serious Push into the Mid-Market&rdquo;</blockquote>
+<div class="src"><a href="https://www.outsail.co/post/bamboohr-launches-elite-package---a-serious-push-into-the-mid-market" target="_blank">BambooHR Launches Elite Package – A Serious Push into the Mid-Market</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Elite tier existence confirmed via pricing page; Sept-2025 timing and analyst framing rest on single third-party blog, not verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C017</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR frames its new AI layer as an assistant that removes work rather than a new product category, tying it back to the legacy people-first tagline.</div>
+<blockquote>&ldquo;a built-in intelligence layer that understands your business, uncovers insights, guides better decisions, and gets work done ... handles work for you so you can put your people first&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com" target="_blank">BambooHR homepage — Bamboo AI messaging</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Homepage AI-framing copy is a self-assertion, internally consistent, not re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C022</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR built a dedicated head-to-head page attacking Rippling by name, titled &#x27;BambooHR, the clear winner over Rippling&#x27;, comparing on contract terms, payroll add-on fees, support channels, and API costs.</div>
+<blockquote>&ldquo;BambooHR, the clear winner over Rippling / BambooHR vs Rippling: Clear ROI, Zero Complexity&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/why-bamboohr/compare/rippling/" target="_blank">BambooHR vs Rippling comparison page</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Named head-to-head Rippling page consistent with vendor practice; not re-fetched this pass.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C023</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">On its Rippling comparison page, BambooHR claims switchers &#x27;reclaim over 50 hours a month,&#x27; that former Rippling customers &#x27;saved over 17 hours a week,&#x27; and that &#x27;100% of customers who switched saw an ROI in under 2 months.&#x27;</div>
+<blockquote>&ldquo;Reclaim over 50 hours a month ... Rippling customers who switched to BambooHR saved over 17 hours a week ... 100% of customers who switched saw an ROI in under 2 months&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/why-bamboohr/compare/rippling/" target="_blank">BambooHR vs Rippling comparison page</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> ROI figures (50 hrs/mo, 17 hrs/wk, 100% ROI &lt;2mo) are competitor marketing self-assertions, not independently verified — treat as claims.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C027</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">For the query &#x27;BambooHR vs Rippling&#x27;, the answer surface is split between both vendors&#x27; own compare pages and third-party comparison sites (Gartner Peer Insights, SHRM, siit.io, calamari.io, business.com) — no single source dominates, so it is a contested surface rather than an open opening for either vendor.</div>
+<blockquote>&ldquo;Rippling vs. BambooHR Comparison Guide 2026 | siit.io; BambooHR vs Rippling 2026 | Gartner Peer Insights; BambooHR, the clear winner over Rippling | bamboohr.com; See how Rippling compares to BambooHR | rippling.com&rdquo;</blockquote>
+<div class="src"><a href="https://www.siit.io/tools/comparison/rippling-vs-bamboohr" target="_blank">Search results for &quot;BambooHR vs Rippling&quot;</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> SERP-composition proxy; contested-surface read is reasonable but SERP snapshots are volatile and unverified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C028</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">For the query &#x27;BambooHR alternatives&#x27;, the answer surface is owned entirely by third-party listicles (Gusto, PeopleManagingPeople, G2, LinkedIn, Homebase, Netchex, HiBob) — no BambooHR-owned page and no Rippling-owned page appears, an open opening currently captured by neutral/competitor-adjacent content sites.</div>
+<blockquote>&ldquo;6 Best BambooHR Competitors &amp; Alternatives in June 2026 | Gusto; 22 Best BambooHR Competitors &amp; Alternatives of 2026 | peoplemanagingpeople.com; Top 10 BambooHR Alternatives &amp; Competitors in 2026 | G2&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/resources/guides/best-bamboohr-competitors" target="_blank">Search results for &quot;BambooHR alternatives&quot;</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> SERP-composition proxy for &#x27;alternatives&#x27;; third-party-owned surface plausible but not re-verified this pass.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C029</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">For the query &#x27;best HR software for small business 2026&#x27;, synthesized results rank Rippling highest on rating (4.8/5 G2) with Gusto as the SMB default pick and BambooHR credited narrowly for &#x27;company culture and onboarding&#x27; — BambooHR is present but not the lead answer on this buyer surface.</div>
+<blockquote>&ldquo;Rippling leads on overall ratings (4.8/5 on G2), Gusto remains the top pick for small businesses ... BambooHR leads for company culture and onboarding&rdquo;</blockquote>
+<div class="src"><a href="https://www.airmason.com/blog/top-hr-software-platforms-in-2026/" target="_blank">Search results for &quot;best HR software for small business 2026&quot;</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Quote supports the claim, but it&#x27;s a single blog&#x27;s synthesis, not an actual SERP; interpretive framing about buyer surface holds only as one source&#x27;s read.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C031</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR&#x27;s category frame is a broad &#x27;complete HR software&#x27; suite (hiring, payroll, benefits, performance, compensation) rather than a narrow point-solution HRIS, positioning it to compete directly on breadth against Rippling&#x27;s &#x27;unified platform&#x27; story while still keeping SMB-simplicity as the differentiator (per the Rippling compare page&#x27;s contract/complexity attacks).</div>
+
+<div class="src"><a href="https://www.bamboohr.com" target="_blank">Inferred from homepage H1, nav structure, and /vs/Rippling page</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> BambooHR does market as &#x27;complete HR software&#x27;; reasonable inferred positioning, no quote, not independently checked.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C033</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR&#x27;s LinkedIn about section self-reports serving over 34,000 customers across 190 countries and states an ambition to become the #1 HR platform for SMBs worldwide.</div>
+<blockquote>&ldquo;a complete HR ecosystem designed to manage, protect, enrich, report on, extend, and benchmark people data... the #1 HR platform for small and medium-sized businesses (SMBs) around the world&rdquo;</blockquote>
+<div class="src"><a href="https://www.linkedin.com/company/bamboohr/" target="_blank">BambooHR | LinkedIn</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Self-reported customer/country figures and #1-SMB ambition; competitor&#x27;s own claim, treated as stated_by_competitor.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C046</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Buyer/analyst commentary positions BambooHR as a strong core HRIS but a weak recruiting/ATS product, with the gap most visible during active hiring — a recurring competitive wedge cited when buyers evaluate alternatives.</div>
+<blockquote>&ldquo;BambooHR is a good HRIS, but it is not a good recruiting platform, and the gap shows up exactly when hiring matters most&rdquo;</blockquote>
+<div class="src"><a href="https://checkthat.ai/brands/bamboohr/alternatives" target="_blank">BambooHR Alternatives: Top Competitors Compared</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Weak-ATS competitive wedge; single third-party source paraphrase, plausible but not corroborated.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C060</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR explicitly states its ICP/vision as small-and-medium-business HR leaders, positioning as the category leader for that segment.</div>
+<blockquote>&ldquo;BambooHR&#x27;s vision is to become the #1 HR platform for small and medium-sized businesses (SMBs) around the world&rdquo;</blockquote>
+<div class="src"><a href="https://business.linkedin.com/marketing-solutions/case-studies/linkedin-bamboo-hr-case-study" target="_blank">How BambooHR Increased Cost-Per-Lead Efficiency by 40%</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Quote says vision to &#x27;become #1&#x27; SMB platform; claim&#x27;s &#x27;positioning as category leader&#x27; slightly overreads an aspirational statement.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C068</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR&#x27;s top Elite tier gates compensation planning, salary benchmarking, levels/bands, custom dashboards, advanced analytics, and premium/dedicated support — the revenue-driving capabilities sit behind the highest-priced plan rather than being sold as standalone upsells.</div>
+<blockquote>&ldquo;Elite (adds): Compensation planning, salary benchmarking, levels/bands, custom dashboards, advanced analytics, HR benchmarks, premium services (dedicated support, training sessions)&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/pricing" target="_blank">BambooHR Pricing</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Elite confirmed as top tier for insights/benchmarks, but the full gated-feature list wasn&#x27;t itemized on the fetched page.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C074</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Competitive framing: Rippling is characterized by buyer-guide sources as the more price-transparent option, publishing per-user pricing starting at $8/user/month, versus BambooHR&#x27;s quote-based model — a direct transparency contrast relevant to SMB price-sensitive buyers comparing the two.</div>
+<blockquote>&ldquo;BambooHR operates on quote-based pricing and requires contacting the vendor to get a customized quote for your organization. In contrast, Rippling has a more transparent pricing structure, starting at $8 per user per month.&rdquo;</blockquote>
+<div class="src"><a href="https://www.itqlick.com/compare/rippling/bamboohr" target="_blank">Rippling vs BambooHR (2026): Pricing &amp; Hidden Fees Revealed</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Rippling $8/user figure is plausible proxy, but &#x27;BambooHR quote-based&#x27; framing is partly outdated given live published prices.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C075</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR&#x27;s homepage messaging (&#x27;even a one-person HR department can use BambooHR&#x27;) and claimed customer base of 30,000 businesses signal an SMB-first, price-sensitive-buyer positioning rather than enterprise-first.</div>
+<blockquote>&ldquo;even a one-person HR department can use BambooHR&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com" target="_blank">BambooHR homepage</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Homepage &#x27;one-person HR department&#x27; quote supports SMB positioning; 30,000-business figure not independently verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C083</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR&#x27;s sequential launches — EOR (Jun 2025) then Contractor Management (Jun 2026), both powered by Remote — constitute a deliberate, staged build-out of a global-employment category, positioning BambooHR against Rippling/Deel/Remote&#x27;s core turf rather than as a one-off feature add.</div>
+
+<div class="src"><a href="https://www.bamboohr.com/about-bamboohr/press-release/bamboohr-contractor-management-remote" target="_blank">Inferred from two BambooHR press releases 12 months apart</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Reasonable inference from two dated Remote-powered launches; empty quote, interpretive framing.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C084</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BambooHR&#x27;s Elite plan (compare-plans page) is positioned for &#x27;Strategic HR leaders and teams that need cutting-edge tools to manage complex talent challenges, drive business results through data, and proactively shape workforce strategy&#x27; — a clear step up from SMB-focused Core/Pro framing.</div>
+<blockquote>&ldquo;Strategic HR leaders and teams that need cutting-edge tools to manage complex talent challenges, drive business results through data, and proactively shape workforce strategy.&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/compare-plans/elite" target="_blank">BambooHR Elite | Advanced HR Insights &amp; Support</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Quote matches Elite compare-plans positioning verbatim.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C086</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Industry analyst outsail.co dates the Elite package launch to September 9, 2025 and frames it as BambooHR&#x27;s &#x27;most overt signal&#x27; of competing with Paylocity, HiBob and the lower end of Workday, built for companies with 500+ employees, aiming to stop customers migrating to Paycor/Paycom as they outgrow BambooHR.</div>
+<blockquote>&ldquo;BambooHR watched as customers grew out of the system and migrated to enterprise-grade tools, and the Elite tier is an attempt to keep those companies in the ecosystem—and win over others that might&#x27;ve otherwise gone straight to a Paycor or Paycom.&rdquo;</blockquote>
+<div class="src"><a href="https://www.outsail.co/post/bamboohr-launches-elite-package---a-serious-push-into-the-mid-market" target="_blank">BambooHR Launches Elite Package – A Serious Push into the Mid-Market</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Quote supports the retention/mid-market framing but not the Sept 9, 2025 date, 500+ employees, or Paylocity/HiBob specifics; proxy analyst source.</div>
+</div>
+<div class="claim" data-v="contradicted" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C095</span>
+<span class="pill p-bad">contradicted</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">BambooHR positions global employment capability via a Remote-powered Employer-of-Record integration covering 150+ countries.</div>
+<blockquote>&ldquo;Employers can hire, manage, and pay global talent in BambooHR through Remote-powered EOR... handle international hiring, payroll, and compliance from the platform you already know and love.&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/platform/global-employment/" target="_blank">BambooHR Global Employment page (per search synthesis of bamboohr.com)</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Remote-powered EOR is confirmed, but page states &#x27;90+ countries&#x27; for EOR (190 overall, 200+ contractors) — the claimed &#x27;150+ countries&#x27; figure appears nowhere.</div>
+</div></section><section><h2>product <span class="count">19</span></h2><div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C001</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BambooHR launched &#x27;Bamboo AI™&#x27;, an embedded agentic AI platform, on July 21, 2026.</div>
+<blockquote>&ldquo;BambooHR Introduces Bamboo AI™, a Connected Intelligence Platform Built to Work While Leaders Focus on Empowering People&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/about-bamboohr/press-release/bamboohr-launches-bamboo-ai" target="_blank">BambooHR Introduces Bamboo AI™ (press release)</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Verified: GlobeNewswire/Yahoo/HRTechEdge confirm Bamboo AI agentic platform launched July 21, 2026.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C002</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Bamboo AI adds Model Context Protocol (MCP) support, letting customers access Bamboo AI capabilities from external AI assistants including ChatGPT and Claude.</div>
+<blockquote>&ldquo;BambooHR also announced support for the Model Context Protocol (MCP)... enabling BambooHR customers to access Bamboo AI capabilities from external AI assistants such as ChatGPT and Claude while maintaining access controls and organizational permissions.&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/about-bamboohr/press-release/bamboohr-launches-bamboo-ai" target="_blank">BambooHR Introduces Bamboo AI™ (press release)</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Re-fetched release: MCP support and access from ChatGPT/Claude confirmed; claim quote lightly paraphrased but substance exact.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C005</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BambooHR launched Contractor Management (powered by Remote) on June 29, 2026, enabling hiring/paying contractors across 200+ countries.</div>
+<blockquote>&ldquo;BambooHR Contractor Management, powered by Remote, enables organizations to hire, onboard, manage, and pay contractors across 200+ countries and jurisdictions.&rdquo;</blockquote>
+<div class="src"><a href="https://www.globenewswire.com/news-release/2026/06/29/3319267/0/en/BambooHR-Launches-Contractor-Management-the-Latest-Addition-to-its-Global-Employment-Offering.html" target="_blank">BambooHR Launches Contractor Management</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Quote directly carries date, Remote partnership, and 200+ countries as written.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C007</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR launched an Employer of Record (EOR) offering powered by Remote around June 30, 2025, supporting payroll in 90+ countries — its first major global-employment expansion ahead of the 2026 Contractor Management add-on.</div>
+<blockquote>&ldquo;BambooHR and Remote Partner to Unlock Easy Global Hiring in Days, Not Months&rdquo;</blockquote>
+<div class="src"><a href="https://www.prnewswire.com/news-releases/bamboohr-and-remote-partner-to-unlock-easy-global-hiring-in-days-not-months-302493772.html" target="_blank">BambooHR and Remote Partner to Unlock Easy Global Hiring</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Launch date/partnership sound but the &#x27;90+ countries&#x27; figure is not in the headline-only quote; proxy grade.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C010</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR claims measurable 2025 platform-expansion impact: 66% of EOR customers report impact within one month, 52% improvement in payroll data accuracy, 85% compliance-training impact within two months, and 46% reduction in compliance issues via its Compliance Intelligence feature.</div>
+<blockquote>&ldquo;66% report impact within one month (EOR), 52% improvement in data accuracy (payroll), 85% impact within two months (compliance training), and 46% reduction in compliance issues (Compliance Intelligence)&rdquo;</blockquote>
+<div class="src"><a href="https://www.prnewswire.com/news-releases/bamboohr-wins-202526-cloud-awards-for-best-hr-tech-302668614.html" target="_blank">BambooHR Wins 2025/26 Cloud Awards for Best HR Tech</a>
+ · observed 2026-01-23 · lane: news</div>
+<div class="vnote"><b>verifier:</b> All four metrics (66/52/85/46%) confirmed verbatim in release, but self-reported so capped at medium.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C019</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR&#x27;s top nav is organized as Hiring &amp; Onboarding, HR Data &amp; Reporting, Payroll &amp; Time, Benefits Administration, Employee Experience, Performance Management, Compensation — a full HR-suite structure, not a narrow HRIS-only nav.</div>
+<blockquote>&ldquo;Hiring &amp; Onboarding | HR Data &amp; Reporting | Payroll &amp; Time | Benefits Administration | Employee Experience | Performance Management | Compensation&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com" target="_blank">BambooHR homepage navigation</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Nav structure is direct observation, not re-verified; consistent with full-suite positioning.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C025</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR&#x27;s payroll product page leads with pain-removal outcome copy rather than feature specs or AI messaging, contrasting with the AI-forward homepage.</div>
+<blockquote>&ldquo;Easy, Accurate Payroll Software Without the Headache ... No more double entry ... No more filing taxes ... We make payroll easier, so you can set people free to do great work®&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/hr-software/payroll" target="_blank">BambooHR Payroll product page</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Payroll page pain-removal copy is direct observation, not re-verified; framing contrast is reasonable.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C026</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR&#x27;s payroll page cites a self-run 2025 survey of 507 BambooHR customers comparing their experience to prior HR solutions as proof, rather than a named competitor benchmark.</div>
+<blockquote>&ldquo;Based on a 2025 survey of 507 BambooHR customers comparing their experience to previous HR solutions&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/hr-software/payroll" target="_blank">BambooHR Payroll product page</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> 2025 survey of 507 customers is a self-cited internal benchmark, not re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C043</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Recurring review-site complaints about BambooHR include an outdated UI/UX feel, PTO requests limited to hour increments rather than flexible date ranges, and access-level permission changes that create unexpected side effects.</div>
+<blockquote>&ldquo;the look and feel is not very nice, making it feel outdated&rdquo;</blockquote>
+<div class="src"><a href="https://www.capterra.com/p/110968/BambooHR/reviews/" target="_blank">BambooHR Reviews 2026 - Capterra</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Recurring-complaint themes from review-site quote; representative but anecdotal, single source.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C045</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">A recurring buyer complaint theme is BambooHR&#x27;s fragmented add-on architecture — its Expense Management module scores only 5.5/10 on G2, pushing buyers to bolt on separate tools for expenses, payroll, benefits, and time tracking, which escalates all-in cost beyond the advertised base price.</div>
+<blockquote>&ldquo;BambooHR&#x27;s Expense Management scores just 5.5/10 on G2&rdquo;</blockquote>
+<div class="src"><a href="https://checkthat.ai/brands/bamboohr/alternatives" target="_blank">BambooHR Alternatives: Top Competitors Compared</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> 5.5/10 Expense Management score and add-on-cost argument come from one third-party comparison blog, not verified at G2.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C077</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BambooHR launched &#x27;BambooHR Employer of Record, powered by Remote&#x27; on June 30, 2025, under the headline &#x27;BambooHR and Remote Partner to Unlock Easy Global Hiring in Days, Not Months.&#x27;</div>
+<blockquote>&ldquo;BambooHR and Remote Partner to Unlock Easy Global Hiring in Days, Not Months&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/about-bamboohr/press-release/bamboohr-eor-remote" target="_blank">BambooHR and Remote Partner to Unlock Easy Global Hiring in Days, Not Months</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Quote matches the June 30, 2025 EOR press-release headline on BambooHR&#x27;s own domain.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C078</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BambooHR&#x27;s EOR offering (powered by Remote) lets customers hire in 90+ countries, per BambooHR&#x27;s own global-employment product page.</div>
+<blockquote>&ldquo;hire with speed and confidence in 90+ countries&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/platform/global-employment/" target="_blank">Global Employment | BambooHR</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Re-fetched global-employment page confirms &#x27;hire...in 90+ countries&#x27; via embedded EOR powered by Remote.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C081</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BambooHR launched &#x27;BambooHR Contractor Management, powered by Remote&#x27; on June 29, 2026, extending its global employment offering to cover contractor hiring/payment in 200+ countries and jurisdictions.</div>
+<blockquote>&ldquo;BambooHR Launches Contractor Management, the Latest Addition to its Global Employment Offering&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/about-bamboohr/press-release/bamboohr-contractor-management-remote" target="_blank">BambooHR Launches Contractor Management, the Latest Addition to its Global Employment Offering</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Press release confirms June 29, 2026 launch, exact headline, and 200+ countries/jurisdictions coverage.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C085</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Elite adds Compensation Management (with Mercer benchmarking data, job levels/bands, planning cycles), HR Benchmarks vs peer groups, Custom Dashboards &amp; Analytics, and Premium (dedicated) Support — features absent from Core and Pro.</div>
+<blockquote>&ldquo;Core focuses on foundational HR automation and Pro enhances the employee experience, Elite builds upon these by adding the most advanced capabilities for strategic HR.&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/compare-plans/elite" target="_blank">BambooHR Elite | Advanced HR Insights &amp; Support</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Quote only states Elite &#x27;builds upon&#x27; Core/Pro generically; the specific Mercer/HR-Benchmarks/Dashboards/Premium-Support list is not carried by the quote.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C089</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR announced a broader AI-enhanced platform update (embedded AI assistant, compensation benchmarking, native apps) at its &#x27;BambooHR Showcase&#x27; event in May 2025, positioned as leading &#x27;the future of HR&#x27; — the same product wave that produced the Elite tier&#x27;s Advanced AI Assistant feature.</div>
+<blockquote>&ldquo;BambooHR&#x27;s Powerful AI-Enhanced Platform Leads the Future of HR&rdquo;</blockquote>
+<div class="src"><a href="https://www.prnewswire.com/news-releases/bamboohrs-powerful-ai-enhanced-platform-leads-the-future-of-hr-302463012.html" target="_blank">BambooHR&#x27;s Powerful AI-Enhanced Platform Leads the Future of HR</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Headline-only quote for the May 2025 Showcase; internally consistent, not independently re-verified.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C090</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR extended global-payroll partnerships beyond Remote/EOR by integrating with Xero to power compliant payroll for scaling companies in the UK, Australia, and New Zealand — signaling regional international expansion beyond the US market.</div>
+<blockquote>&ldquo;New BambooHR + Xero Powers Compliant Global Payroll for Scaling Companies in the UK, Australia, and New Zealand&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/about-bamboohr/press-release/xero-payroll-integrations" target="_blank">New BambooHR + Xero Powers Compliant Global Payroll for Scaling Companies in the UK, Australia, and New Zealand</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Quote matches the Xero payroll integration headline on BambooHR&#x27;s domain; proxy grade caps at medium.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C097</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">G2 reviewers report BambooHR lacks support for employees spread across multiple states, a payroll/compliance gap for growing companies.</div>
+<blockquote>&ldquo;there&#x27;s no support for having employees in multiple states&rdquo;</blockquote>
+<div class="src"><a href="https://www.g2.com/products/bamboohr/reviews" target="_blank">BambooHR Reviews - G2</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Snippet-style G2 quote, internally plausible; not independently re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C098</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">G2 reviewers describe BambooHR&#x27;s reporting engine as lacking the depth and flexibility needed for granular, custom data analysis, a recurring complaint from power users.</div>
+<blockquote>&ldquo;the reporting engine lacks the depth and flexibility needed for granular, custom data analysis&rdquo;</blockquote>
+<div class="src"><a href="https://www.g2.com/products/bamboohr/reviews" target="_blank">BambooHR Reviews - G2</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Quote reads composed rather than verbatim but aligns with recurring reporting-depth complaints; proxy, medium.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C099</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Reviewers note BambooHR&#x27;s advanced HR, payroll, and reporting features are less robust than larger enterprise systems, requiring customization workarounds as companies scale past SMB size.</div>
+<blockquote>&ldquo;Some advanced HR, payroll, and reporting features may not be as robust as those offered by larger enterprise systems, and certain customizations can require workarounds&rdquo;</blockquote>
+<div class="src"><a href="https://www.g2.com/products/bamboohr/reviews" target="_blank">BambooHR Reviews - G2</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Generic scale-limitation review sentiment, plausible and consistent; not re-verified.</div>
+</div></section><section><h2>pricing <span class="count">17</span></h2><div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C020</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BambooHR prices per-employee-per-month on three tiers (Core $10, Pro $17, Elite $25) but reverts to a flat monthly rate for very small companies, structurally gating pricing model by company size.</div>
+<blockquote>&ldquo;Core - $10 USD per employee/month; Pro - $17 USD per employee/month; Elite - $25 USD per employee/month ... for companies with 25 or fewer employees, pricing is a flat monthly rate starting at $250 USD/month&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/pricing" target="_blank">BambooHR Pricing</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Re-fetched pricing page: Core $10 / Pro $17 / Elite $25 PEPM and $250/mo flat for ≤25 employees all confirmed exactly.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C044</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Buyer-side switching/pricing discourse (surfaced via a third-party comparison blog paraphrasing a Reddit account) reports sticker shock scaling past 150-200 employees, citing &#x27;$17 PEPM for the Elite tier&#x27; as steep versus recalled pricing five years earlier — unverifiable directly since the underlying Reddit thread could not be located or dated.</div>
+<blockquote>&ldquo;$17 PEPM for the &#x27;Elite&#x27; tier&rdquo;</blockquote>
+<div class="src"><a href="https://checkthat.ai/brands/bamboohr/alternatives" target="_blank">BambooHR Alternatives: Top Competitors Compared</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Reddit-paraphrased $17 PEPM Elite pricing; claim self-flags it as unverifiable and underlying thread not located.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C056</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR&#x27;s traffic is majority organic but with a substantial, real paid-search program: 21.43% of search traffic is paid vs 78.57% organic, out of 15.1M total visits in the trailing 3 months.</div>
+<blockquote>&ldquo;Organic: 78.57% | Paid: 21.43%&rdquo;</blockquote>
+<div class="src"><a href="https://www.similarweb.com/website/bamboohr.com/" target="_blank">BambooHR Traffic Overview - Similarweb</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Similarweb re-verified at 78.57% organic / 21.43% paid and ~15.1M visits; figures are Similarweb estimates, so medium.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C063</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BambooHR&#x27;s pricing page lists three tiers — Core at $10, Pro at $17, and Elite at $25 per employee per month.</div>
+<blockquote>&ldquo;Core: $10 USD per employee/month; Pro: $17 USD per employee/month; Elite: $25 USD per employee/month&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/pricing" target="_blank">BambooHR Pricing</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Re-fetched live pricing page: Core $10, Pro $17, Elite $25 per employee/month confirmed exactly.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C064</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Companies with 25 or fewer employees pay a flat rate starting at $250/month regardless of tier, rather than per-employee pricing.</div>
+<blockquote>&ldquo;Flat rate starting at $250 USD/month for companies with ≤25 employees&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/pricing" target="_blank">BambooHR Pricing</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Live page confirms flat rate starting at $250/mo for companies with ≤25 employees.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C065</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR applies automatic volume discounts as headcount increases rather than requiring negotiation for larger accounts.</div>
+<blockquote>&ldquo;Automatic volume discounts&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/pricing" target="_blank">BambooHR Pricing</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Page confirms volume discounts auto-applied by headcount; self-assertion caps at medium.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C066</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Payroll, Benefits Administration, Time &amp; Attendance, and Global Employment (powered by Remote) are sold as separate add-on modules with no listed prices on the pricing page — pricing for these is gated behind a quote request.</div>
+<blockquote>&ldquo;Add-On Solutions (No prices listed): Payroll, Benefits Administration, Time &amp; Attendance, Global Employment (powered by Remote)&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/pricing" target="_blank">BambooHR Pricing</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Live page confirms Payroll, Benefits Admin, Time &amp; Attendance, Global Employment (Remote) as add-ons with no listed prices.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C067</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR offers a 15% discount when customers combine Payroll and Benefits Administration add-ons, limited to US employees.</div>
+<blockquote>&ldquo;15% discount when you combine Payroll and Benefits Administration (US employees only)&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/pricing" target="_blank">BambooHR Pricing</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> 15% Payroll+Benefits bundle discount confirmed on page; the &#x27;US employees only&#x27; qualifier was not visible in re-fetch.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C069</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">No BambooHR tier is marked &#x27;most popular&#x27; or otherwise anchored/highlighted on the pricing page, unlike typical good-better-best SaaS pricing pages.</div>
+<blockquote>&ldquo;No tier explicitly marked &quot;most popular&quot;&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/pricing" target="_blank">BambooHR Pricing</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Re-fetch confirms no tier is designated &#x27;most popular&#x27;; conservative on a negative/absence observation.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C070</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR&#x27;s homepage displays a &#x27;Start Free Trial&#x27; CTA, but the pricing page itself has no self-serve checkout or trial signup — it routes visitors to &#x27;Get Pricing&#x27;/&#x27;Get Quote&#x27; forms or a phone number, indicating the free-trial motion is not the primary path to actual pricing.</div>
+<blockquote>&ldquo;CTA Button Text: &quot;Get My Free Demo&quot;, &quot;Start Free Trial&quot;, &quot;Get a Demo&quot; / Free price quote available at 1-866-387-9595 or pricing page — No specific pricing amounts disclosed&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com" target="_blank">BambooHR homepage</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Pricing page confirmed to route to Get Quote/Get Pricing with no self-serve checkout; homepage free-trial CTA not re-verified this session.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C071</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Multiple independent third-party buyer-guide sources (OutSail, Vendr, Pin.com) state BambooHR does not publish list pricing publicly and requires a custom sales quote, with rates varying by negotiation, headcount, and modules selected — this directly conflicts with the specific tier prices found on the live pricing page during this session.</div>
+<blockquote>&ldquo;BambooHR does not publish list pricing publicly. Pricing is provided through custom quotes, and rates vary significantly based on company size, module selection, and negotiation.&rdquo;</blockquote>
+<div class="src"><a href="https://www.vendr.com/marketplace/bamboohr" target="_blank">BambooHR Software Pricing &amp; Plans 2026: See Your Cost</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Vendr quote reported accurately, but its &#x27;no public pricing&#x27; substance is now contradicted by the live tier prices—likely stale proxy source.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C072</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">OutSail&#x27;s 2025 buyer analysis reports a typical realized PEPM range of $12–$22 for most BambooHR customers after negotiation, decreasing with volume — wider and different from the flat $10/$17/$25 tier list prices.</div>
+<blockquote>&ldquo;the published per-employee-per-month (PEPM) range for most businesses falls between $12 and $22, decreasing with volume&rdquo;</blockquote>
+<div class="src"><a href="https://www.outsail.co/post/how-much-does-bamboohr-cost" target="_blank">BambooHR Pricing Breakdown: Features and Cost Analysis</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> OutSail $12–22 realized PEPM is unverifiable proxy; caps at low.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C073</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">G2/Capterra reviewers report BambooHR renewal price increases of 20–30%, a recurring complaint about opaque, negotiation-dependent pricing.</div>
+<blockquote>&ldquo;several customers have noted unexpected price increases when renewing, with some reporting jumps of 20–30% at contract renewal&rdquo;</blockquote>
+<div class="src"><a href="https://www.g2.com/compare/bamboohr-vs-sage-hcm" target="_blank">G2/Capterra review aggregation (search snippet)</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> 20–30% renewal-hike claim is proxy; URL is a G2 vs-Sage comparison page, an odd source for aggregated reviewer complaints.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C076</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR offers a 15% discount for registered nonprofits on top of standard tier pricing.</div>
+<blockquote>&ldquo;15% off for registered nonprofits&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/pricing" target="_blank">BambooHR Pricing</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Live page confirms additional 15% off for registered nonprofits; self-assertion caps at medium.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C087</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Elite tier list price is reported at roughly $25 per-employee-per-month, versus ~$10 (Core) and ~$17 (Pro) — figure sourced from third-party buyer-report aggregation, not published on BambooHR&#x27;s own pricing page.</div>
+<blockquote>&ldquo;BambooHR runs roughly $10/$17/$25 PEPM on Core, Pro, and Elite&rdquo;</blockquote>
+<div class="src"><a href="https://www.outsail.co/post/bamboohr-launches-elite-package---a-serious-push-into-the-mid-market" target="_blank">BambooHR Launches Elite Package – A Serious Push into the Mid-Market</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> $10/$17/$25 PEPM corroborated across multiple third-party pricing pages; not on BambooHR&#x27;s own page, as claimed; proxy caps at medium.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C100</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Capterra reviewers say BambooHR&#x27;s add-on pricing structure (charged per employee per month on top of the base plan) undercuts its &#x27;affordable HR platform&#x27; positioning.</div>
+<blockquote>&ldquo;BambooHR&#x27;s add-on structure is where the &#x27;affordable HR platform&#x27; narrative starts to crack, with each add-on priced per employee per month on top of the base plan cost.&rdquo;</blockquote>
+<div class="src"><a href="https://www.capterra.com/p/110968/BambooHR/reviews/" target="_blank">BambooHR Reviews - Capterra</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Add-on-per-employee critique is consistent with confirmed pricing structure; quote reads paraphrased, proxy medium.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C101</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR&#x27;s published pricing tiers (Core $10/user/mo, Pro $17/user/mo, Elite $25/user/mo, $250/mo minimum for ≤25 employees) exclude time tracking, performance management, and survey modules, which are add-on-only.</div>
+<blockquote>&ldquo;BambooHR starts at $10/user/month for Core, with Pro at $17/user/month and Elite at $25/user/month. The minimum starting price is $250 per month for 25 employees or fewer... modules like time tracking, performance management, and surveys are only available as add-ons.&rdquo;</blockquote>
+<div class="src"><a href="https://www.trustradius.com/products/bamboohr/reviews" target="_blank">BambooHR Reviews - TrustRadius</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Independent search corroborates Core $10/Pro $17/Elite $25, $250/mo min for ≤25, and time-tracking as add-on; proxy caps at medium.</div>
+</div></section><section><h2>ads <span class="count">8</span></h2><div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C048</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BambooHR runs a large, multi-creative national TV campaign: iSpot.tv tracks 13 distinct BambooHR commercials totaling 1,952 national airings as of 2026-07-28.</div>
+<blockquote>&ldquo;Total Creatives Tracked: 13 ads | National Airings: 1,952 | Data Period: Through 07/28/2026&rdquo;</blockquote>
+<div class="src"><a href="https://www.ispot.tv/brands/nRI/bamboohr" target="_blank">BambooHR TV Commercials - iSpot</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> iSpot re-verified: 13 creatives, 1,952 national airings; note the data window is one month (06/28–07/28/2026), not all-time.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C052</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR is the presenting sponsor of the SHRM Annual Conference &amp; Expo through 2027, with CEO keynote slots alongside high-profile guests (Simon Sinek in 2026; &#x27;Office Ladies&#x27; podcast hosts in 2025) — a category-narrative brand play, not direct-response.</div>
+<blockquote>&ldquo;BambooHR CEO Brad Rencher delivered a keynote on Wednesday, June 17, alongside renowned author and leadership expert Simon Sinek on &quot;The Future of Work Is Still Human&quot;&rdquo;</blockquote>
+<div class="src"><a href="https://finance.yahoo.com/news/bamboohr-announced-presenting-sponsor-shrm-130000953.html" target="_blank">BambooHR Announced as Presenting Sponsor of SHRM Annual Conference Through 2027</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Press-confirmed: presenting sponsor through 2027, Brad Rencher + Simon Sinek keynote at SHRM26; &#x27;Office Ladies 2025&#x27; sub-detail not re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C054</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">The LinkedIn full-funnel program delivered a measured performance lift: cost-per-lead efficiency improved 40% and cost-per-demo was nearly halved, indicating LinkedIn is treated as a bottom-funnel, budget-justified channel, not brand-only.</div>
+<blockquote>&ldquo;cost-per-demo cut by nearly half, and according to the campaign overview, BambooHR increased their cost-per-lead efficiency by 40%&rdquo;</blockquote>
+<div class="src"><a href="https://business.linkedin.com/marketing-solutions/case-studies/linkedin-bamboo-hr-case-study" target="_blank">How BambooHR Increased Cost-Per-Lead Efficiency by 40%</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> CPL +40% / cost-per-demo halved come from LinkedIn&#x27;s own case study; vendor-reported, not independently verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C055</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR ran a dedicated &#x27;Sr. Demand Marketer (Paid Social - LinkedIn)&#x27; role managing LinkedIn Ads, Facebook/Instagram Ads, and YouTube Ads as part of a Digital Marketing Team — confirming a funded, multi-platform paid-social program (posting later removed, ~Nov 2024).</div>
+<blockquote>&ldquo;managing and growing the Paid Social channel...managing LinkedIn Ads, Facebook/Instagram Ads, YouTube Ads and other platforms, while optimizing paid acquisition campaigns&rdquo;</blockquote>
+<div class="src"><a href="https://builtin.com/job/sr-paid-social-manager/3342402" target="_blank">Sr. Demand Marketer (Paid Social - LinkedIn)</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Job posting supports a funded paid-social program; posting since removed, source is a job board.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C057</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR bids on high-CPC branded category terms in paid search, consistent with historical brand+category-term SEM strategy.</div>
+<blockquote>&ldquo;bamboohr ($10.76) | bamboo hr ($19.54) | bamboohr login ($3.92) | bamboo hr login ($4.63)&rdquo;</blockquote>
+<div class="src"><a href="https://www.similarweb.com/website/bamboohr.com/" target="_blank">BambooHR Traffic Overview - Similarweb</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Similarweb CPC snapshot supports branded-term bidding; the &#x27;historical strategy&#x27; rider is a mild inference, not re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C058</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Google Ads Transparency Center returned no visible creative for BambooHR on direct fetch, but Similarweb&#x27;s 21% paid-traffic share and high branded-term CPCs corroborate an active Google Ads/SEM program the library itself just failed to render — a channel confirmed live via a Tier-4 signal despite the Tier-1 wall.</div>
+
+<div class="src"><a href="https://adstransparency.google.com/?region=US&amp;query=BambooHR" target="_blank">Google Ads Transparency Center (empty render) cross-checked against Similarweb paid-traffic share</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Empty quote; &#x27;library just failed to render&#x27; is a speculative inference stacked on proxy paid-share signals, not proof of an active Google Ads program.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C059</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">No BambooHR-specific paid or branded content surfaced on TikTok despite dedicated search; combined with no BambooHR presence found via general TikTok ad-spy queries, this suggests TikTok is not a channel BambooHR is buying (or activity is confined to EEA/UK/CH scope the Commercial Content Library covers, which a US-focused SMB brand would have little reason to target).</div>
+
+<div class="src"><a href="https://library.tiktok.com/ads?region=US&amp;query=BambooHR" target="_blank">TikTok Commercial Content Library (no results found for BambooHR)</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Absence-of-evidence inference; internally consistent but proves nothing about actual TikTok spend.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C061</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR&#x27;s primary paid-traffic geography is heavily US/Canada-concentrated with a fast-growing UK segment, suggesting UK may be an emerging paid-expansion market.</div>
+<blockquote>&ldquo;United States: 52.94% (↑2.87%) | Canada: 12.85% (↑3.95%) | United Kingdom: 6.42% (↑19.5%) | India: 3.29% (↑7.15%)&rdquo;</blockquote>
+<div class="src"><a href="https://www.similarweb.com/website/bamboohr.com/" target="_blank">BambooHR Traffic Overview - Similarweb</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Geo percentages support US/Canada concentration and fast UK growth, but quote doesn&#x27;t confirm these are paid-only figures vs total traffic.</div>
+</div></section><section><h2>social <span class="count">11</span></h2><div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C032</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR&#x27;s LinkedIn company page has 176,955 followers and uses the tagline &#x27;HR Software with Heart&#x27;.</div>
+<blockquote>&ldquo;HR Software with Heart&rdquo;</blockquote>
+<div class="src"><a href="https://www.linkedin.com/company/bamboohr/" target="_blank">BambooHR | LinkedIn</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Tagline plausible but exact 176,955 follower count is a live LinkedIn figure not independently re-verifiable; measured grade not confirmed, so capped.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C034</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">BambooHR&#x27;s recent LinkedIn content mixes AI-product announcements (Bamboo AI for automation/reporting), HR-practitioner education (direct vs. indirect total compensation), and in-person community programming (a &#x27;People People Tour&#x27; visiting U.S. cities to connect with HR professionals), rather than pure product ads (no verbatim quote captured; analyst read of the fetched page).</div>
+
+<div class="src"><a href="https://www.linkedin.com/company/bamboohr/" target="_blank">BambooHR | LinkedIn</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Inferred analyst read of LinkedIn content mix, no verbatim quote and not verified.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C035</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR built an SEO-driven thought-leadership asset (an HR Glossary of 300+ term definitions) that a marketing case study credits with a 31% increase in website traffic, 153 pages ranking #1, 103 more in top-10, and 1,789 backlinks gained in a single month.</div>
+<blockquote>&ldquo;31% increase in website traffic&rdquo;</blockquote>
+<div class="src"><a href="https://foundationinc.co/lab/bamboohr/" target="_blank">How BambooHR Created Thought Leadership with Its HR Glossary</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Foundation case study figures (31%, 153 #1, 103 top-10, 1,789 backlinks/month) re-verified; data is from 2023, so medium.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C036</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">A single BambooHR glossary entry (&#x27;performance review&#x27;) is credited with generating $22,700 in estimated traffic value while ranking for 1,268 keywords, illustrating the depth of their SEO/content investment in HR-practitioner search intent.</div>
+<blockquote>&ldquo;$22,700 in traffic value&rdquo;</blockquote>
+<div class="src"><a href="https://foundationinc.co/lab/bamboohr/" target="_blank">How BambooHR Created Thought Leadership with Its HR Glossary</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> $22,700 traffic value and 1,268 keywords for &#x27;performance review&#x27; entry re-verified on the case study page.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C037</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR has earned mainstream press coverage as a content/PR angle, including a two-minute segment on the Today Show tied to its paid vacation policy, and citations from Harvard Business Review — used as credibility pillars for its thought-leadership positioning.</div>
+<blockquote>&ldquo;two-minute segment on the Today Show&rdquo;</blockquote>
+<div class="src"><a href="https://foundationinc.co/lab/bamboohr/" target="_blank">How BambooHR Created Thought Leadership with Its HR Glossary</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Today Show two-minute segment confirmed; HBR is cited as a backlink source not a formal &#x27;citation&#x27; — mild overreach on that word.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C039</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">BambooHR&#x27;s YouTube channel is characterized by third-party marketing analysts as spanning thought leadership, tips, product demos, and tutorials across the employee lifecycle, and is credited with making the brand look &#x27;more trustworthy and professional&#x27; and aiding recruiting (candidates citing the Careers video).</div>
+<blockquote>&ldquo;the videos made the brand look more trustworthy and professional&rdquo;</blockquote>
+<div class="src"><a href="https://demoduck.com/blog/how-bamboohr-uses-video/" target="_blank">Bamboo HR&#x27;s Video Marketing Strategy - Demo Duck</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Third-party (Demo Duck) marketing characterization of YouTube; promotional source, soft claim.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C040</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">BambooHR&#x27;s Head of HR, Anita Grantham (title is Head of HR, not CEO/CHRO), is an active executive thought-leadership voice — appearing on the Future of HR podcast (&#x27;Becoming a Trusted Advisor&#x27;) and drawing on her prior role as Chief People Officer at Pluralsight, where her team built a culture recognized on Fortune&#x27;s Best Companies to Work For list (no verbatim quote captured; analyst read of the fetched page).</div>
+
+<div class="src"><a href="https://futureofhr.com/episodes/becoming-a-trusted-advisor-with-anita-grantham" target="_blank">Becoming a Trusted Advisor with Anita Grantham - Future of HR</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Anita Grantham is BambooHR&#x27;s Head of HR and ex-Pluralsight; inferred, no quote captured, podcast appearance not re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C047</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">BambooHR maintains a dedicated content-and-social-media hiring pipeline (e.g., paid content/social media internship postings distributed via university career boards), indicating organic social is staffed as a standing function rather than an ad-hoc effort.</div>
+
+<div class="src"><a href="https://englishinternships.byu.edu/internships/content-and-social-media-internships-with-bamboohr-summer-paid-full-time" target="_blank">Content and Social Media Internships with BambooHR</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Internship posting supports a staffed social function only weakly; inferred, no quote.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C104</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR&#x27;s LinkedIn company page has 176,955 followers and lists 1,905 employees (company size band 1,001-5,000), based in Draper, Utah (no verbatim quote captured; analyst read of the fetched page).</div>
+
+<div class="src"><a href="https://www.linkedin.com/company/bamboohr/" target="_blank">BambooHR LinkedIn company page</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> LinkedIn is not independently fetchable; analyst-read figures internally coherent (Draper UT, 1,001-5,000 band) but unverified; inferred caps at medium.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C105</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">On BambooHR&#x27;s LinkedIn, the Bamboo AI product-launch post drew far higher engagement (383 reactions, 25 comments) than a culture/compensation-education post (15 reactions, 2 comments), indicating the audience responds more to product/AI news than soft content.</div>
+<blockquote>&ldquo;Bamboo AI announcement: 383 reactions, 25 comments... Total Compensation post: 15 reactions, 2 comments&rdquo;</blockquote>
+<div class="src"><a href="https://www.linkedin.com/company/bamboohr/" target="_blank">BambooHR LinkedIn company page</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Engagement comparison is a single-source social snapshot that cannot be re-verified; no red flags but not confirmed, so caps below high.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C106</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR&#x27;s recent LinkedIn content mixes four pillars: AI/product announcements, compensation-education thought leadership, culture/community events (the &#x27;People People Tour&#x27; visiting cities like Seattle and Indianapolis), and employee-wellness engagement content.</div>
+
+<div class="src"><a href="https://www.linkedin.com/company/bamboohr/" target="_blank">BambooHR LinkedIn company page</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Content-pillar synthesis is an analyst inference, reasonable but unverified; inferred, medium.</div>
+</div></section><section><h2>news <span class="count">3</span></h2><div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C008</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BambooHR won the 2025/26 Cloud Awards &#x27;Best Cloud HR/HRMS Solution,&#x27; announced January 23, 2026.</div>
+<blockquote>&ldquo;BambooHR Wins 2025/26 Cloud Awards for Best HR Tech&rdquo;</blockquote>
+<div class="src"><a href="https://www.prnewswire.com/news-releases/bamboohr-wins-202526-cloud-awards-for-best-hr-tech-302668614.html" target="_blank">BambooHR Wins 2025/26 Cloud Awards for Best HR Tech</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Re-fetched PRNewswire: Best Cloud HR/HRMS win, announced Jan 23 2026, all confirmed.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C012</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Industry trackers estimate BambooHR raised a $125M growth round in 2024 valuing the company at roughly $2.5B, with 2024-2025 annual revenue estimated at $300-350M — no new funding round found in the 2025-2026 window, consistent with a stable, PE-adjacent/profitable ownership posture rather than a fresh raise.</div>
+<blockquote>&ldquo;BambooHR is valued at approximately $2.5 billion following a $125 million growth round in 2024, with estimated annual revenue in the range of $300–350 million&rdquo;</blockquote>
+<div class="src"><a href="https://www.swotanalysis.com/bamboohr/sales/2025-q3" target="_blank">BambooHR Sales SWOT Analysis &amp; Strategic Plan [Q2 2025]</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> $125M/$2.5B Aug-2024 round and no newer raise confirmed by search, but revenue is $274M ARR (getlatka), running below the claimed $300-350M range.</div>
+</div>
+<div class="claim" data-v="contradicted" data-e="proxy">
+<div class="head"><span class="cid">C088</span>
+<span class="pill p-bad">contradicted</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">BambooHR raised $125M in growth funding at a $2.5B valuation led by Providence Equity around August 1, 2024, per data-aggregator reporting — this figure could NOT be confirmed against any primary BambooHR announcement or tier-1 press outlet in this pass and should be treated as unverified.</div>
+<blockquote>&ldquo;BambooHR raised $125M in Growth funding at a $2.5B valuation... The round took place on August 1, 2024, with Providence Equity leading the investment.&rdquo;</blockquote>
+<div class="src"><a href="https://salestools.io/report/bamboohr-125m-growth" target="_blank">BambooHR $125M Growth Funding - $2.5B Valuation | Real Report | SalesTools AI</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Only salestools.io aggregator asserts the $125M/$2.5B/Providence raise; getLatka lists BambooHR as bootstrapped, no tier-1 primary confirms.</div>
+</div></section><section><h2>customers <span class="count">10</span></h2><div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C009</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR claims to be trusted by 30,000+ companies across 190 countries and 50 industries.</div>
+<blockquote>&ldquo;Trusted by 30,000+ companies across 190 countries&rdquo;</blockquote>
+<div class="src"><a href="https://www.prnewswire.com/news-releases/bamboohr-wins-202526-cloud-awards-for-best-hr-tech-302668614.html" target="_blank">BambooHR Wins 2025/26 Cloud Awards for Best HR Tech</a>
+ · observed 2026-01-23 · lane: news</div>
+<div class="vnote"><b>verifier:</b> 30,000+/190 countries corroborated in search, but &#x27;50 industries&#x27; is not in the quote; competitor self-assertion.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C014</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">BambooHR&#x27;s customer base skews SMB: 34,000+ customers, of which 73% have under $50M revenue and only 6% are large enterprises — context for why the 2025-26 Elite/EOR/Contractor-Management launches represent genuine upmarket stretch rather than core-market moves.</div>
+<blockquote>&ldquo;BambooHR has 34,000+ customers, with 73% having under $50 million in revenue, and only 6% being large enterprises&rdquo;</blockquote>
+<div class="src"><a href="https://www.swotanalysis.com/bamboohr/sales/2025-q3" target="_blank">BambooHR Sales SWOT Analysis &amp; Strategic Plan [Q2 2025]</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Single-source swotanalysis proxy; &#x27;34,000+ customers&#x27; conflicts with getlatka 26K (2024) and homepage&#x27;s 30,000 — customer count is soft.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C018</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR&#x27;s homepage social-proof band claims 30,000 businesses as customers and a 4.4/5 rating from 5,000+ reviews.</div>
+<blockquote>&ldquo;30,000 businesses use BambooHR; 4.4/5 stars (5,000+ reviews)&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com" target="_blank">BambooHR homepage social proof</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Self-reported social proof; note &#x27;30,000 businesses&#x27; conflicts with C014&#x27;s 34,000+ and getlatka&#x27;s 26K — inconsistent customer counts across claims.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C021</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR&#x27;s public /customers page has essentially no logo wall — only one named customer (Basden Steel) surfaced, with the rest of the page reliant on dynamically-loaded, unpopulated templates.</div>
+<blockquote>&ldquo;companyCount ... Basden Steel ... &quot;Our family is growing, like bamboo&quot;&rdquo;</blockquote>
+<div class="src"><a href="https://www.bamboohr.com/customers" target="_blank">BambooHR Customer Success Stories</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Empty logo-wall observation plausible but page uses dynamic templates; self-graded medium, not re-verified.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C030</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">G2 lists BambooHR at 4.4/5 across 5,641 reviews (67% five-star), a review-volume and score BambooHR leans on as trust proof against higher-rated but historically lower-review-count rivals like Rippling.</div>
+<blockquote>&ldquo;BambooHR has been rated 4.4 stars by 5,641 verified reviews on G2 ... 67% of reviews are 5 stars&rdquo;</blockquote>
+<div class="src"><a href="https://www.g2.com/products/bamboohr/reviews" target="_blank">Search results for &quot;BambooHR G2 rating reviews score&quot;</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> G2 4.4/5 across 5,641 verified reviews re-verified via search; 67% five-star and the &#x27;trust-proof vs Rippling&#x27; framing are analyst overlay, so capped at medium.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C041</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">On Capterra, BambooHR holds a 4.6/5 rating from 3,108 verified reviews (data current as of March 31, 2026), with recurring praise for ease of use and customer service (&#x27;the finest I have ever come across&#x27;).</div>
+<blockquote>&ldquo;the finest I have ever come across&rdquo;</blockquote>
+<div class="src"><a href="https://www.capterra.com/p/110968/BambooHR/reviews/" target="_blank">BambooHR Reviews 2026 - Capterra</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Capterra 4.6/5 across 3,108 reviews, updated March 31 2026, re-verified via search.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C042</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">On G2, BambooHR holds a 4.4/5 rating with reviewer base skewed mid-market (66.4% of reviews from mid-market companies), positioning it as strongest with established SMB/mid-market HR teams rather than enterprise (no verbatim quote captured; analyst read of the fetched page).</div>
+
+<div class="src"><a href="https://www.g2.com/compare/bamboohr-vs-personio" target="_blank">Compare BambooHR and Personio - G2</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> G2 4.4/5 confirmed; the 66.4% mid-market split is inferred from a compare page and not independently checked.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C096</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Reviewers on TrustRadius report BambooHR&#x27;s native payroll often requires manual work and integrates poorly with external payroll systems, creating data-sync and deduction-management problems.</div>
+<blockquote>&ldquo;Payroll in BambooHR often requires manual work due to limited built-in features and poor integration with external payroll systems, with users struggling with syncing data and managing deductions.&rdquo;</blockquote>
+<div class="src"><a href="https://www.trustradius.com/products/bamboohr/reviews?qs=pros-and-cons" target="_blank">BambooHR Pros and Cons - TrustRadius</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Reads as an analyst paraphrase rather than verbatim review text, but consistent with BambooHR&#x27;s known payroll-integration complaints; proxy caps at medium.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C102</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Capterra reviewers report inconsistent BambooHR support experiences for complex issues: slower chat queues, inconsistent follow-up, and replies that lean on generic tutorials rather than resolving the specific problem.</div>
+<blockquote>&ldquo;some users report slower chat queues, inconsistent follow-up, and frustration when replies lean too heavily on tutorials for complex issues&rdquo;</blockquote>
+<div class="src"><a href="https://www.capterra.com/p/110968/BambooHR/reviews/" target="_blank">BambooHR Reviews - Capterra</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Support-inconsistency sentiment plausible but quote reads synthesized; not re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C103</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">G2 reviewers report BambooHR lacks self-service options for simple administrative changes, forcing users to contact customer support for tasks that should be self-serve.</div>
+<blockquote>&ldquo;Self-service for simple options are not included, with users having to call customer support for simple options&rdquo;</blockquote>
+<div class="src"><a href="https://www.g2.com/products/bamboohr/reviews" target="_blank">BambooHR Reviews - G2</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Self-service complaint plausible, snippet-style; not independently verified, proxy medium.</div>
+</div></section><section><h2>other <span class="count">2</span></h2><div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C013</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">On G2, BambooHR holds a 4.4-star rating across 5,641 reviews and is marked a &#x27;Grid® Leader&#x27; as of 2026.</div>
+<blockquote>&ldquo;BambooHR has been rated 4.4 stars by 5641 verified reviews on G2&rdquo;</blockquote>
+<div class="src"><a href="https://www.g2.com/products/bamboohr/reviews" target="_blank">BambooHR Reviews 2026 | G2</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> G2 rating snapshot not re-verified; proxy figure, plausible but review count is volatile.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C015</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BambooHR&#x27;s public newsroom (newsroom.bamboohr.com) currently surfaces only thought-leadership/editorial content (HR trend commentary), not a dated press-release archive — actual announcements live instead under bamboohr.com/about-bamboohr/press-release/ and third-party wire services.</div>
+
+<div class="src"><a href="https://newsroom.bamboohr.com/" target="_blank">BambooHR Newsroom</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Inferred from newsroom structure; reasonable but not independently re-verified.</div>
+</div></section>
+<section><h2>post-eval corrections <span class="count">2</span></h2><p class="note">The eval harness catching things is the audit trail of it working.</p><ul class="corr"><li>Repair pass: master scoped verification to 14 claims; remaining 87 re-verified via parallel chunks (write_brief now auto-verifies leftovers in code). C034, C040, C042, C104 re-graded to inferred (quote-less non-inferred).</li><li>Claim IDs restored to the run&#x27;s original numbering (repair rebuild had renumbered contiguously, dangling the brief&#x27;s C102-C106 citations).</li></ul></section>
+<footer>Machine-readable twin: the claims JSON in the same folder. Grades — measured: read from a fetched page ·
+self-claimed: the competitor says so · proxy: third-party sourced · inferred: analyst read with basis stated.</footer>
+<script>
+document.getElementById('filters').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#filters button').forEach(x => x.classList.toggle('on', x === b));
+  const f = b.dataset.f;
+  document.querySelectorAll('.claim').forEach(c => {
+    let show = f === 'all'
+      || (f === 'v:flagged' && ['unsupported','contradicted'].includes(c.dataset.v))
+      || (f.startsWith('v:') && c.dataset.v === f.slice(2))
+      || (f.startsWith('e:') && c.dataset.e === f.slice(2));
+    c.classList.toggle('hidden', !show);
+  });
+  document.querySelectorAll('section').forEach(s => {
+    const any = s.querySelectorAll('.claim:not(.hidden)').length || !s.querySelector('.claim');
+    s.style.display = any ? '' : 'none';
+  });
+});
+</script>
+</body></html>

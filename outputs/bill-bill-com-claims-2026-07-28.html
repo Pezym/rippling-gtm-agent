@@ -1,0 +1,1083 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BILL (Bill.com) — claims ledger</title>
+<style>
+  :root { --ink:#1f2328; --dim:#6a737d; --faint:#98a1ab; --line:#e6e8eb; --soft:#f6f7f8;
+          --ok:#0e7a55; --okbg:#e7f5ef; --warn:#8a5a00; --warnbg:#fdf3dc;
+          --bad:#b42318; --badbg:#fdecea; --blue:#0b6bcb; --bluebg:#e8f1fc; }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#e6e8eb; --dim:#9aa4b0; --faint:#6b7480; --line:#2a2f36; --soft:#171a1f;
+             --ok:#4cc596; --okbg:#0d2b20; --warn:#e2b93d; --warnbg:#2c2410;
+             --bad:#f08578; --badbg:#331512; --blue:#6cb0f5; --bluebg:#10233a; }
+    body { background:#0f1114; }
+  }
+  * { box-sizing:border-box; margin:0; }
+  body { font:15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+         color:var(--ink); max-width:860px; margin:0 auto; padding:48px 28px 90px; }
+  h1 { font-size:30px; letter-spacing:-.4px; }
+  .sub { color:var(--dim); margin-top:6px; }
+  .statbar { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 6px; }
+  .stat { border:1px solid var(--line); border-radius:999px; padding:5px 13px; font-size:12.5px; color:var(--dim); }
+  .stat b { color:var(--ink); }
+  .filters { position:sticky; top:0; background:inherit; backdrop-filter:blur(6px);
+             display:flex; flex-wrap:wrap; gap:6px; padding:14px 0; border-bottom:1px solid var(--line);
+             margin-bottom:10px; z-index:5; background-color:rgba(255,255,255,.85); }
+  @media (prefers-color-scheme: dark) { .filters { background-color:rgba(15,17,20,.85); } }
+  .filters button { border:1px solid var(--line); background:none; color:var(--dim); border-radius:999px;
+                    padding:5px 13px; font:inherit; font-size:12.5px; cursor:pointer; }
+  .filters button.on { background:var(--bluebg); color:var(--blue); border-color:var(--blue); }
+  section { margin-top:34px; }
+  h2 { font-size:19px; padding-bottom:8px; border-bottom:1px solid var(--line); margin-bottom:14px;
+       text-transform:capitalize; }
+  .count { color:var(--faint); font-weight:400; font-size:14px; }
+  .claim { border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:12px; }
+  .claim.hidden { display:none; }
+  .head { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:8px; }
+  .cid { font-family:ui-monospace, Menlo, monospace; font-size:12px; color:var(--blue);
+         background:var(--bluebg); border-radius:6px; padding:2px 8px; }
+  .pill { font-size:11.5px; border-radius:999px; padding:2px 10px; }
+  .p-ok { color:var(--ok); background:var(--okbg); }
+  .p-warn { color:var(--warn); background:var(--warnbg); }
+  .p-bad { color:var(--bad); background:var(--badbg); }
+  .p-dim { color:var(--dim); background:var(--soft); }
+  .text { font-size:15px; }
+  blockquote { margin:10px 0 8px; padding:8px 14px; border-left:3px solid var(--line);
+               color:var(--dim); font-style:italic; background:var(--soft); border-radius:0 8px 8px 0; }
+  .src { font-size:12.5px; color:var(--faint); }
+  .src a { color:var(--blue); text-decoration:none; }
+  .vnote { margin-top:8px; font-size:12.5px; color:var(--dim); background:var(--soft);
+           border-radius:8px; padding:7px 11px; }
+  .vnote b { font-weight:600; }
+  .note { color:var(--dim); font-size:13px; margin-bottom:10px; }
+  .corr { padding-left:20px; color:var(--dim); font-size:13.5px; }
+  .corr li { margin-bottom:8px; }
+  footer { margin-top:40px; color:var(--faint); font-size:12.5px; border-top:1px solid var(--line); padding-top:14px; }
+</style></head><body>
+<h1>BILL (Bill.com) — claims ledger</h1>
+<div class="sub">Every fact behind the brief, with its verbatim quote, source, and how hard it survived verification.
+Generated 2026-07-29 · model claude-opus-4-8</div>
+<div class="statbar">
+  <span class="stat"><b>90</b> claims</span>
+  <span class="stat"><b>50</b> confirmed</span>
+  <span class="stat"><b>37</b> plausible</span>
+  <span class="stat"><b>3</b> flagged</span>
+  <span class="stat"><b>39</b> measured · <b>30</b> proxy ·
+      <b>16</b> self-claimed · <b>5</b> inferred</span>
+</div>
+<div class="filters" id="filters">
+  <button class="on" data-f="all">all</button>
+  <button data-f="v:confirmed">confirmed</button>
+  <button data-f="v:plausible">plausible</button>
+  <button data-f="v:flagged">flagged</button>
+  <button data-f="e:measured">measured</button>
+  <button data-f="e:proxy">proxy</button>
+  <button data-f="e:stated_by_competitor">self-claimed</button>
+  <button data-f="e:inferred">inferred</button>
+</div>
+<section><h2>messaging <span class="count">19</span></h2><div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C014</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">CEO René Lacerte declared BILL will pivot to an AI-native operating model, framing AI as the biggest disruptive force in its industry (May 7, 2026).</div>
+<blockquote>&ldquo;we will become an AI native company&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/blog/a-message-to-bill-employees-may-2026" target="_blank">A message to BILL employees from CEO and Founder</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> May 2026 employee message and AI-native pivot widely corroborated (tied to ~30% layoffs); date coheres with May 7 earnings.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C017</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL&#x27;s messaging pivot centers on &#x27;touchless finance&#x27; with a new ICP label, the &#x27;Fortune 5 Million&#x27; (SMBs and accounting firms), per Feb 5, 2026 blog.</div>
+<blockquote>&ldquo;The Future of Finance is Touchless: BILL AI is Solving the Friction Crisis for the Fortune 5 Million&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/blog/the-future-of-finance-is-touchless" target="_blank">BILL AI is Solving the Friction Crisis for the Fortune 5 Million</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Touchless-finance / &#x27;Fortune 5 Million&#x27; framing consistent with corroborated AI pivot; blog title quote not independently re-fetched.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C025</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL&#x27;s LinkedIn tagline centers positioning on AI, framing AP/AR/spend as &#x27;intelligent&#x27;.</div>
+<blockquote>&ldquo;The future of finance is intelligent—and it&#x27;s powered by BILL AI. Activate smarter AP, AR, and spend management.&rdquo;</blockquote>
+<div class="src"><a href="https://www.linkedin.com/company/bill" target="_blank">BILL | LinkedIn</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> AI-centric tagline consistent with verified &#x27;BILL AI&#x27; positioning; page not directly fetchable.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C028</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL uses proprietary-research thought-leadership (2026 State of AI in Finance report) as an organic content engine, pushing AI-productivity narratives.</div>
+<blockquote>&ldquo;BILL survey showing that 82% of accounting firm leaders say AI has raised client expectations ... &quot;2026 State of AI in Finance report&quot; ... AI is saving finance teams 21 hours per week&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/blog/new-at-bill-january-march-2026" target="_blank">New at BILL: January–March 2026</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> 2026 State of AI report stats (82%, 21 hrs/week) are vendor-sourced; correctly graded stated_by_competitor.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C036</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">The homepage subhead bundles five workflows into one platform pitch (bills, invoices, expenses, budgets, credit), signaling a suite/consolidation play rather than point-tool AP.</div>
+<blockquote>&ldquo;The intelligent way to create and pay bills, send invoices, manage expenses, control budgets, and access the credit your business needs to grow — all on one platform.&rdquo;</blockquote>
+<div class="src"><a href="https://bill.com" target="_blank">BILL Homepage</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Subhead bundling bills/invoices/expenses/budgets/credit &#x27;all on one platform&#x27; verified verbatim on homepage.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C041</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">AR page&#x27;s central functional hook is speed-to-cash, stated as a 2X multiplier.</div>
+<blockquote>&ldquo;Automate invoicing and get paid 2X faster.&rdquo;</blockquote>
+<div class="src"><a href="https://bill.com/product/accounts-receivable" target="_blank">BILL Accounts Receivable</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> &#x27;get paid 2X faster&#x27; verified on AR page via search; BILL self-asserted multiplier, capped medium.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C044</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">The accountant pitch is framed around firm economics (revenue + client capacity), not just time savings.</div>
+<blockquote>&ldquo;Join thousands of accounting firms using BILL to automate manual tasks and increase revenue.&rdquo;</blockquote>
+<div class="src"><a href="https://bill.com/accountants" target="_blank">BILL for Accountants</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> &#x27;automate manual tasks and increase revenue&#x27; framing verified verbatim on /accountants.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C053</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL&#x27;s positioning is diffuse at the top (broad &#x27;financial operations platform&#x27;) but sharp at the product level — the emotional through-line across AP/AR/accountant pages is busywork elimination and reclaimed time.</div>
+<blockquote>&ldquo;emphasizes results (&quot;save 8 hrs a week,&quot; &quot;50% of AP time&quot;) ... Emotional hooks center on relief (&quot;erases the busywork,&quot; &quot;focus on growth&quot;)&rdquo;</blockquote>
+<div class="src"><a href="https://bill.com/product/accounts-payable" target="_blank">BILL Accounts Payable</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Underlying phrases (&#x27;8 hrs a week&#x27;, &#x27;50% of AP time&#x27;, &#x27;erases the busywork&#x27;) verified on AP page; the &#x27;through-line&#x27; synthesis is inferred, capped medium.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C056</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL&#x27;s AR value promise is speed-of-payment: &#x27;Automate invoicing and get paid 2X faster.&#x27;</div>
+<blockquote>&ldquo;Automate invoicing and get paid 2X faster.&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/product/accounts-receivable" target="_blank">Accounts Receivable — BILL</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> &#x27;Automate invoicing and get paid 2X faster&#x27; verified on AR page; BILL self-assertion, capped medium.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C058</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BILL leans on heavy social-proof/stat-stacking as its dominant conversion device across ad destinations (scale + trust + time-savings numbers above the fold).</div>
+<blockquote>&ldquo;500K+ businesses are automating their financial operations with BILL / 93% of customers agree that BILL is easy to use / 97% of customers believe the BILL platform is secure / 8 hrs a week saved on AP / used by more than 80% of the top 100 accounting firms in the United States&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/product/accounts-payable" target="_blank">Accounts Payable Software — BILL</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> AP page confirms all stat-stack figures verbatim (500K+, 93%, 97%, 8 hrs, 80% of top-100 firms).</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C062</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BILL&#x27;s AP creative angle is AI-driven busywork elimination (invoice capture, approval routing, payment processing) rather than price or compliance-fear.</div>
+<blockquote>&ldquo;With AI-powered AP automation, BILL erases the busywork from capturing invoices, routing approvals, and processing payments—syncing seamlessly with your accounting software so you can focus on growth.&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/product/accounts-payable" target="_blank">Accounts Payable Software — BILL</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> &#x27;Busywork&#x27; AI-automation quote confirmed verbatim on AP page.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C063</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BILL amplifies a network-scale trust narrative in top-of-funnel messaging (8.3M network members, $345B annual payment volume ≈1% of US GDP) as a moat-style proof point.</div>
+<blockquote>&ldquo;8.3M network members pay or get paid with BILL / $345B in total payment volume (~1% of US GDP) on an annual basis&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/" target="_blank">BILL | Financial Operations Platform</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Homepage confirms 8.3M network members and $345B (~1% of US GDP) annual volume verbatim.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C065</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BILL&#x27;s lead accountant hook is capacity-multiplication without hiring — &#x27;Grow capacity, not headcount&#x27; — via exception-based AP workflows.</div>
+<blockquote>&ldquo;Grow capacity, not headcount&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/for-accountants" target="_blank">Accounting Automation Software For Accounting Firms - BILL</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> &#x27;Grow capacity, not headcount&#x27; present as section heading on for-accountants page.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C067</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BILL offers accountants a dual referral-economics path: manage bill pay for clients OR refer clients and earn rewards — explicitly monetizing the partner channel.</div>
+<blockquote>&ldquo;Managing bill pay for clients using BILL&quot; OR &quot;Referring clients to BILL and earning rewards&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/for-accountants" target="_blank">Accounting Automation Software For Accountant Firms - BILL</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Dual path &#x27;Managing bill pay for clients&#x27; OR &#x27;Referring clients and earning rewards&#x27; confirmed in signup form.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C082</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL&#x27;s Ramp-conquest angle attacks three specific objections: no AR in Ramp, Ramp charges for spend management, and Ramp&#x27;s thinner support — all framed as BILL advantages (stated_by_competitor).</div>
+<blockquote>&ldquo;All BILL Spend &amp; Expense features are available at no cost ... Live phone and chat support from real, helpful humans 7 days a week&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/compare/bill-vs-ramp" target="_blank">BILL vs. Ramp — bill.com</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> No-AR-in-Ramp, free Spend &amp; Expense, and 7-day-a-week support all confirmed on the comparison page; competitor self-framing caps at medium.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C083</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">AP creative angle is sales-led and efficiency-framed: hero &#x27;Accelerate accounts payable with BILL&#x27; with an AI/busywork-removal hook and a demo offer. hook: AI erases AP busywork | persona: controller/AP manager | pain: manual invoice/approval work | offer: live demo | funnel: conversion | proof: stats/logos | format: static LP</div>
+<blockquote>&ldquo;With AI-powered AP automation, BILL erases the busywork from capturing invoices, routing approvals, and processing payments&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/product/accounts-payable" target="_blank">Accounts Payable Software — BILL</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> AP hero/AI-busywork framing consistent with BILL&#x27;s AP product page; exact hero page not re-fetched.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C084</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">AR creative angle is speed-led and self-serve: hero &#x27;Get set up and send your first invoice in minutes&#x27; with &#x27;get paid 2X faster&#x27; and a low-friction Get Started CTA. hook: get paid 2X faster | persona: SMB owner/biller | pain: slow collections | offer: self-serve signup | funnel: conversion | format: static LP</div>
+<blockquote>&ldquo;Automate invoicing and get paid 2X faster.&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/product/accounts-receivable" target="_blank">Accounts Receivable Software — BILL</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> AR page confirms &#x27;Automate invoicing and get paid 2X faster&#x27;, &#x27;send your first invoice in minutes&#x27;, and &#x27;Get Started&#x27; CTA.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C086</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Creative theme is social-proof/stats-led: landing pages foreground scale and satisfaction numbers as the trust device (these are BILL&#x27;s own claims).</div>
+<blockquote>&ldquo;500K+ businesses are automating their financial operations with BILL ... 93% of customers agree that BILL is easy to use ... 8 hrs a week saved on AP&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/product/accounts-payable" target="_blank">Accounts Payable Software — BILL</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Social-proof stats are BILL&#x27;s own claims; consistent with site messaging but self-asserted.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C087</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL&#x27;s core cross-product paid hook compresses both value props into one line combining AP time-savings and AR speed.</div>
+<blockquote>&ldquo;Spend 50% less time on AP, automate invoicing, and get paid 2x faster&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/product/accounts-payable" target="_blank">BILL — search snippet</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> AP page carries a near-variant (&#x27;Get paid two times faster and save up to 50% of time spent on AP&#x27;); compressed cross-product hook exists, exact wording differs.</div>
+</div></section><section><h2>positioning <span class="count">15</span></h2><div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C011</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL&#x27;s packaging courts SMB-to-mid-market finance teams self-serve while pushing multi-entity/enterprise buyers into custom sales — contrasting with Rippling&#x27;s platform-bundle model where AP/spend is one module of a per-employee HR/IT suite rather than a standalone per-user finance product.</div>
+
+<div class="src"><a href="https://bill.com/pricing" target="_blank">Pricing &amp; Plans | BILL</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> BILL side verified; Rippling contrast is reasonable analysis, not independently checked.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C012</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL is shifting go-to-market up-market, expecting net new customer additions to trend below 4,000 as it prioritizes larger, higher-ARPU customers.</div>
+<blockquote>&ldquo;net new customer additions to trend below 4,000 in the near term as the go-to-market strategy shifts toward acquiring larger, higher-ARPU customers&rdquo;</blockquote>
+<div class="src"><a href="https://finance.yahoo.com/markets/stocks/articles/bill-com-holdings-inc-q3-123000808.html" target="_blank">Bill.com Holdings, Inc. Q3 2026 Earnings Call Summary</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Multiple earnings sources confirm &#x27;below 4,000 net new adds&#x27; guidance tied to higher-ARPU upmarket shift; proxy caps confidence.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C019</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL claims its network spans more than 8 million businesses and moves roughly 1% of US GDP annually (used to position B2B ecosystem scale).</div>
+<blockquote>&ldquo;more than 8 million businesses ... ~1% of US GDP annually&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/press-release/bill-extends-supplier-payments" target="_blank">BILL Extends Supplier Payments to Power a Connected B2B Ecosystem</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> &#x27;8 million+ businesses / ~1% of US GDP&#x27; quote verified in BILL materials; remains a company self-assertion.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C034</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Demand-side: the buyer comparison question BILL is repeatedly matched against is Melio (cost/simple), Ramp (card+AP together), and Stampli (coding/approval control).</div>
+<blockquote>&ldquo;If payment cost is the main friction point with a simple vendor list, Melio is the closest comparison ... If card spend and AP need to sit together, Ramp makes more sense&rdquo;</blockquote>
+<div class="src"><a href="https://beancount.io/blog/2026/07/11/bill-com-vs-melio-vs-ramp-accounts-payable-guide" target="_blank">Bill.com vs. Melio vs. Ramp | Beancount.io</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Quote supports Melio (cost) and Ramp (card+AP) but does NOT mention Stampli — the Stampli/coding-control leg of the claim is unsupported by the quoted text.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C035</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BILL&#x27;s homepage category frame is &#x27;AI-powered financial operations platform,&#x27; not &#x27;AP automation&#x27; — AP/AR sit as product pages beneath a broader umbrella.</div>
+<blockquote>&ldquo;Meet BILL. Your AI-powered financial operations platform.&rdquo;</blockquote>
+<div class="src"><a href="https://bill.com" target="_blank">BILL Homepage</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Verified verbatim on homepage: &#x27;Meet BILL. Your AI-powered financial operations platform.&#x27;</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C038</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL&#x27;s distinctive moat claim is a two-sided payment network — 8.3M members that pay or get paid — a proof point Rippling cannot replicate.</div>
+<blockquote>&ldquo;8.3M network members pay or get paid with BILL&rdquo;</blockquote>
+<div class="src"><a href="https://bill.com" target="_blank">BILL Homepage</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> 8.3M network members verified as BILL&#x27;s own homepage claim; self-assertion caps at medium and &#x27;Rippling cannot replicate&#x27; is editorial.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C039</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BILL still owns the literal &#x27;Accounts Payable Automation&#x27; label on its product page even though the homepage has moved up-market to &#x27;financial operations platform.&#x27;</div>
+<blockquote>&ldquo;BILL Accounts Payable Automation&rdquo;</blockquote>
+<div class="src"><a href="https://bill.com/product/accounts-payable" target="_blank">BILL Accounts Payable</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> AP product page verified as &#x27;Accounts Payable Automation&#x27; offering while homepage sits at &#x27;financial operations platform.&#x27;</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C043</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BILL runs a dedicated accountant-channel GTM with wholesale pricing and a client-management console — a partner motion Rippling does not foreground.</div>
+<blockquote>&ldquo;Wholesale pricing, sales and marketing tools, and an online client management console can help your firm find outsourced accounting success.&rdquo;</blockquote>
+<div class="src"><a href="https://bill.com/accountants" target="_blank">BILL for Accountants</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Wholesale pricing + client-management console language verified verbatim on /accountants.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C049</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL&#x27;s stated ICP is US-based SMB/midsize + accounting firms with domestic-first AP; it is positioned by third parties as weaker on global/cross-border vs Tipalti.</div>
+<blockquote>&ldquo;BILL zeroes in on simple AP tasks for a US-based market and is a solid accounts payable solution for smaller businesses that operate domestically.&rdquo;</blockquote>
+<div class="src"><a href="https://www.rippling.com/blog/bill-com-alternatives" target="_blank">Top 7 Bill.com Alternatives &amp; Competitors for AP (2025)</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> US-domestic-AP / weaker-cross-border framing is a Rippling-blog (competitor) assertion; reasonable but a self-interested source.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C050</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">AEO: the &#x27;BILL vs Rippling / BILL alternatives&#x27; answer surface is owned by Rippling&#x27;s own blog (top result), not by BILL — BILL does not appear to defend its own comparison surface in search.</div>
+<blockquote>&ldquo;Top 7 Bill.com Alternatives &amp; Competitors for AP (2025) — rippling.com/blog/bill-com-alternatives (top-ranked result for query &quot;BILL vs Rippling AP automation alternatives&quot;)&rdquo;</blockquote>
+<div class="src"><a href="https://www.rippling.com/blog/bill-com-alternatives" target="_blank">Rippling blog — Bill.com alternatives</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Competitor-blog dominance of the &#x27;BILL alternatives&#x27; surface confirmed, but the specific &#x27;Rippling top-ranked result&#x27; ranking was not reproduced in my search.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C051</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">AEO: the &#x27;BILL alternatives&#x27; surface is dominated by competitor-owned comparison blogs (Ramp, Brex, Rippling) and G2 — an open opening BILL is not contesting with its own vs/comparison content.</div>
+<blockquote>&ldquo;Results: rippling.com/blog/bill-com-alternatives, brex.com/.../bill-com-competitors-and-alternatives, ramp.com/blog/top-bill-alternatives, g2.com&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/blog/top-bill-alternatives" target="_blank">Search results — BILL alternatives</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Re-searched: results dominated by ramp.com, brex.com, stampli.com, expensify, dokka — no BILL-owned vs/comparison page appears; proxy caps at medium.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C052</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">AEO: for &#x27;best AP automation for accounting firms 2026,&#x27; BILL is named but sits inside third-party listicles alongside Ramp/Vic.ai/Tipalti/Dext — no BILL-owned page owns the query.</div>
+<blockquote>&ldquo;BILL is one of the most established accounts payable automation platforms for small and mid-sized businesses in the US and is especially useful for accounting firms handling moderate to high AP volume.&rdquo;</blockquote>
+<div class="src"><a href="https://www.zenwork.com/payments/blog/ap-automation-software-for-accounting-firms/" target="_blank">Top 5 AP Automation Software for Accounting Firms in 2026</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Consistent with observed third-party listicle dominance for accounting-firm AP queries; not independently re-verified for that exact query.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C057</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BILL&#x27;s master paid positioning is category consolidation — one AI platform spanning AP, AR, spend/expense, and credit — which the AP/AR ad destinations feed into.</div>
+<blockquote>&ldquo;Meet BILL. Your AI-powered financial operations platform.&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/" target="_blank">BILL | Financial Operations Platform</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Homepage verbatim confirms &#x27;AI-powered financial operations platform&#x27; spanning AP/AR/spend/expense/credit consolidation.</div>
+</div>
+<div class="claim" data-v="unsupported" data-e="measured">
+<div class="head"><span class="cid">C064</span>
+<span class="pill p-bad">unsupported</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">BILL frames AP as an untapped revenue stream for accounting firms — an accountant-monetization angle Rippling does not run.</div>
+<blockquote>&ldquo;AP represents a raging new revenue stream—one that&#x27;s largely untapped by the accounting profession, with bill pay being one of the highest valued services from clients who buy accounting services, but only one-third of accountants offered it.&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/for-accountants" target="_blank">Accounting Automation Software For Accounting Firms - BILL</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Fetch of cited for-accountants page did not find the &#x27;raging new revenue stream&#x27; quote; source does not carry the quote as written.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C075</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Demand-side buyer talk frames the category as a three-way comparison — buyers actively ask BILL vs Melio vs Ramp, segmented by business size.</div>
+<blockquote>&ldquo;In 2026, Bill.com (BILL), Melio, and Ramp are three names that dominate the accounts payable conversation... built for different-sized businesses with different priorities.&rdquo;</blockquote>
+<div class="src"><a href="https://beancount.io/blog/2026/07/11/bill-com-vs-melio-vs-ramp-accounts-payable-guide" target="_blank">Bill.com vs. Melio vs. Ramp: Which AP Tool Fits Your Business?</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Third-party blog proxy for BILL-vs-Melio-vs-Ramp buyer framing; consistent, not re-verified.</div>
+</div></section><section><h2>product <span class="count">6</span></h2><div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C015</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BILL launched BILL Travel, an SMB Spend &amp; Expense product combining booking, budgets, card controls and expense management (April 28, 2026).</div>
+<blockquote>&ldquo;BILL Launches New Travel Offering to Help SMBs Take Control of Travel Spend&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/press-release/bill-launches-new-travel-offering" target="_blank">BILL Launches New Travel Offering to Help SMBs Take Control of Travel Spend</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Multiple sources confirm BILL Travel launch April 28, 2026 combining booking, budgets, card controls, expense management.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C016</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BILL extended Supplier Payments Plus to target Large Enterprise Suppliers with enterprise-grade controls, signaling an enterprise-side push (April 8, 2026).</div>
+<blockquote>&ldquo;BILL Extends Supplier Payments to Power a Connected B2B Ecosystem and Help Large Enterprise Suppliers Get Paid Up to ~7 Days Faster&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/press-release/bill-extends-supplier-payments" target="_blank">BILL Extends Supplier Payments to Power a Connected B2B Ecosystem</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> April 8, 2026 press release confirmed across BILL/Businesswire/PYMNTS: Supplier Payments Plus for large enterprise suppliers, enterprise-grade controls, ~7 days faster.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C018</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL claims its AI agents deliver strong automation results, e.g. Invoice Coding Agent reduces coding steps and W-9 Agent collected 40,000 W-9s since October launch.</div>
+<blockquote>&ldquo;Invoice Coding Agent &quot;reduces coding steps by up to 89%&quot; ... W-9 Agent has &quot;collected 40,000 W-9s&quot; since October launch&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/blog/the-future-of-finance-is-touchless" target="_blank">BILL AI is Solving the Friction Crisis for the Fortune 5 Million</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Vendor self-asserted AI metrics (89% coding steps, 40,000 W-9s), correctly graded stated_by_competitor; not independently verifiable.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C023</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL expanded ERP integrations beyond Rillet, adding a new Acumatica two-way integration and enhanced PO syncing for QuickBooks Online (Q1 2026 product update).</div>
+<blockquote>&ldquo;expanded its 2-way direct integrations, including a new integration for Acumatica and enhanced PO syncing for QuickBooks Online&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/blog/new-at-bill-january-march-2026" target="_blank">New at BILL: January–March 2026</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Acumatica 2-way integration + QBO PO syncing plausible per product-update blog; not independently re-verified.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C040</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">AP page leads with AI invoice coding as the hero capability and quantifies the time savings.</div>
+<blockquote>&ldquo;BILL AI automatically codes multi line items bills reducing manual time by 20%&rdquo;</blockquote>
+<div class="src"><a href="https://bill.com/product/accounts-payable" target="_blank">BILL Accounts Payable</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> &#x27;BILL AI automatically codes multi line item bills reducing manual time by 20%*&#x27; verified verbatim; it is BILL&#x27;s own asterisked stat, capped at medium.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C042</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Integrations messaging is accounting-software-first: BILL leads with the GL systems accountants use, not HR/IT systems.</div>
+<blockquote>&ldquo;QuickBooks Online, QuickBooks Pro/Premier, Xero, NetSuite, Sage Intacct, Microsoft Dynamics&rdquo;</blockquote>
+<div class="src"><a href="https://bill.com/product/accounts-payable" target="_blank">BILL Accounts Payable</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Accounting-GL integrations (QuickBooks, Xero, NetSuite, Sage Intacct, Dynamics) confirmed; messaging is accounting-software-first.</div>
+</div></section><section><h2>pricing <span class="count">16</span></h2><div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C001</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BILL prices its AP &amp; AR product on a per-user-per-month basis across four tiers, making the value metric accounting/workflow seats rather than employees — positioning it as a finance-ops tool, not an HR platform.</div>
+<blockquote>&ldquo;$49 user/month&rdquo;</blockquote>
+<div class="src"><a href="https://bill.com/pricing" target="_blank">Pricing &amp; Plans | BILL</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Fetched pricing page: four tiers (Essentials $49, Team $65, Corporate $89, Enterprise custom), all per-user/month — value metric is seats.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C002</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BILL&#x27;s AP &amp; AR entry tier Essentials is $49/user/month, limited to manual CSV integration, standard approval policies, and 6 standard user roles.</div>
+<blockquote>&ldquo;$49 user/month&quot; - Manual CSV integration, standard approval policies, 6 standard user roles&rdquo;</blockquote>
+<div class="src"><a href="https://bill.com/pricing" target="_blank">Pricing &amp; Plans | BILL</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Essentials $49/user/month with manual CSV integration, standard approval policies, 6 standard user roles — all confirmed on pricing page.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C003</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BILL&#x27;s Team tier is $65/user/month and is the first tier to unlock automatic 2-way sync with QuickBooks/Xero plus custom user roles — accounting-integration depth is the up-tier lever.</div>
+<blockquote>&ldquo;$65 user/month&quot; - Automatic 2-way sync with QuickBooks/Xero, custom user roles&rdquo;</blockquote>
+<div class="src"><a href="https://bill.com/pricing" target="_blank">Pricing &amp; Plans | BILL</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Pricing page confirms Team $65 as first tier with automatic 2-way QuickBooks/Xero sync + custom user roles; custom approval policies also appear here.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C004</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BILL highlights Corporate ($89/user/month) as &#x27;Most Popular&#x27;, adding procurement features, custom approval policies, and discounted approver-only user seats — the anchored mid-market tier.</div>
+<blockquote>&ldquo;$89 user/month&quot; - Marked as &quot;Most Popular,&quot; includes procurement features, custom approval policies, discounts for approver-only users&rdquo;</blockquote>
+<div class="src"><a href="https://bill.com/pricing" target="_blank">Pricing &amp; Plans | BILL</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Corporate $89 &#x27;Most Popular&#x27; with procurement, tolerance rules, approver-only discounts confirmed; note custom approval policies actually unlock at Team, not Corporate.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C005</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BILL gates its real enterprise capabilities — multi-entity, SSO, dual control, priority support, and NetSuite/Sage Intacct/Microsoft Dynamics sync — behind a &#x27;Custom Pricing&#x27; Enterprise tier, marking where sales-led revenue lives.</div>
+<blockquote>&ldquo;Custom Pricing&quot; - Multi-entity capabilities, SSO, dual control, priority support, automatic sync with NetSuite/Sage Intacct/Microsoft Dynamics&rdquo;</blockquote>
+<div class="src"><a href="https://bill.com/pricing" target="_blank">Pricing &amp; Plans | BILL</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Enterprise custom pricing gates multi-entity, SSO, dual control, and NetSuite/Sage Intacct/Dynamics sync as stated; priority support not explicitly shown but rest verified.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C006</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">On top of subscription, BILL charges per-transaction payment fees: ACH $0.59, mailed check $1.99, virtual card free, international USD wire $19.99, instant payment 1.0% ($9.99 min/$100 max), Pay Faster ACH $11.99 — a usage-fee layer that is a hidden cost beyond seat pricing.</div>
+<blockquote>&ldquo;ACH: &quot;$0.59&quot; - Check: &quot;$1.99&quot; (mailed) - Virtual Card: &quot;Free&quot; - International USD Wire: &quot;$19.99 USD&quot; - Instant Payment: &quot;1.0% ($9.99 min fee, $100 max fee)&quot; - Pay Faster ACH: &quot;$11.99&quot;&rdquo;</blockquote>
+<div class="src"><a href="https://bill.com/pricing" target="_blank">Pricing &amp; Plans | BILL</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> All per-transaction fees match pricing page exactly (ACH $0.59, check $1.99, virtual card free, wire $19.99, instant 1% $9.99/$100, Pay Faster $11.99).</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C007</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Paying a bill by credit card on BILL carries a 2.9% fee (card in, ACH disbursement) — a card-surcharge monetization line.</div>
+<blockquote>&ldquo;2.9%&quot; when paying by card with ACH disbursement&rdquo;</blockquote>
+<div class="src"><a href="https://bill.com/pricing" target="_blank">Pricing &amp; Plans | BILL</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> 2.9% credit-card payment fee confirmed on pricing page.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C008</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BILL&#x27;s Spend &amp; Expense product is a $0/user/month free hook offering access to credit lines from $1,000–$5M — a freemium land motion feeding the paid AP/AR and interchange revenue.</div>
+<blockquote>&ldquo;$0 user/month&quot; with &quot;Access credit lines from $1000-$5M&rdquo;</blockquote>
+<div class="src"><a href="https://bill.com/pricing" target="_blank">Pricing &amp; Plans | BILL</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Spend &amp; Expense $0/user with $1,000–$5M credit line range confirmed.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C009</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BILL runs a dedicated accountant channel: an AP &amp; AR Partner plan at $49/month with wholesale pricing and a free Spend &amp; Expense Partner plan — a partner-led GTM distinct from direct self-serve.</div>
+<blockquote>&ldquo;AP &amp; AR Partner:** &quot;$49 month&quot; with wholesale pricing
+**Spend &amp; Expense Partner:** &quot;$0 Free-to-use&rdquo;</blockquote>
+<div class="src"><a href="https://bill.com/pricing" target="_blank">Pricing &amp; Plans | BILL</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> AP &amp; AR Partner $49/mo and free Spend &amp; Expense Partner plan confirmed on pricing page.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C010</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL offers a free trial, referenced in its pricing FAQ, supporting a self-serve SMB entry motion alongside the sales-led Enterprise tier.</div>
+<blockquote>&ldquo;Free trial available in most cases&rdquo;</blockquote>
+<div class="src"><a href="https://bill.com/pricing" target="_blank">Pricing &amp; Plans | BILL</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> &#x27;Free trial available in most cases&#x27; quote present; the self-serve-motion framing is mild inference.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C031</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Demand-side: buyers&#x27; top recurring complaint is per-seat &#x27;seat tax&#x27; pricing — paying for approver seats that log in rarely.</div>
+<blockquote>&ldquo;only 4–5 of those seats get used daily — the rest exist because approvers need to log in once a week ... at $45–$89 monthly per seat&rdquo;</blockquote>
+<div class="src"><a href="https://www.kenfromfinance.com/blog/bill-com-alternatives" target="_blank">Bill.com Alternatives in 2026 | Ken from Finance</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Third-party blog opinion; per-seat figures align with actual $49–$89 pricing but &#x27;top recurring complaint&#x27; is unverified generalization.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C033</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Demand-side: buyers cite renewal-upsell pricing shock, with contract price roughly doubling at renewal.</div>
+<blockquote>&ldquo;the renewal upsell ... the price effectively doubled overnight&rdquo;</blockquote>
+<div class="src"><a href="https://www.kenfromfinance.com/blog/bill-com-alternatives" target="_blank">Bill.com Alternatives in 2026 | Ken from Finance</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Renewal-doubling anecdote is present in the source but it is a self-interested competitor blog with no citation; the tier-upsell mechanism is plausible given BILL&#x27;s $49→$89 gap.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C046</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Pricing is public and per-user tiered: Essentials $49, Team $65, Corporate $89 (Most Popular), Enterprise custom — anchored on AP/AR.</div>
+<blockquote>&ldquo;Essentials: &quot;$49 user/month&quot;; Team: &quot;$65 user/month&quot;; Corporate: &quot;$89 user/month&quot; (positioned as &quot;Most Popular&quot;); Enterprise: &quot;Custom Pricing&quot;&rdquo;</blockquote>
+<div class="src"><a href="https://bill.com/pricing" target="_blank">BILL Pricing</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Live pricing page verified: Essentials $49, Team $65, Corporate $89 (Most Popular), Enterprise Custom — matches exactly.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C047</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BILL gates NetSuite/Sage Intacct/Dynamics/QB Enterprise two-way sync and SSO/multi-entity behind Enterprise, signaling mid-market/upmarket monetization of deeper ERP integrations.</div>
+<blockquote>&ldquo;Enterprise adds sync with &quot;QuickBooks Enterprise, Oracle NetSuite, Sage Intacct, Microsoft Dynamics&quot; and features like SSO, dual control, and multi-entity capabilities.&rdquo;</blockquote>
+<div class="src"><a href="https://bill.com/pricing" target="_blank">BILL Pricing</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Enterprise 2-way sync (QB Enterprise, NetSuite, Sage Intacct, Dynamics) plus SSO/dual control/multi-entity verified on pricing page.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C048</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BILL uses a free ($0/user) Spend &amp; Expense tier bundled with credit lines as a land motion — competing with Ramp/Brex on price of entry.</div>
+<blockquote>&ldquo;BILL Spend &amp; Expense Pricing: &quot;$0 user/month&quot; ... &quot;access credit lines from $1000-$5M&quot;&rdquo;</blockquote>
+<div class="src"><a href="https://bill.com/pricing" target="_blank">BILL Pricing</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Spend &amp; Expense $0/user with credit lines $1000-$5M verified on pricing page.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C076</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Recurring buyer complaint: opaque, high per-transaction fees inflate cost — $0.59 ACH, 1.0% instant transfer, 2.9% vendor card — with confusion over two product ecosystems.</div>
+<blockquote>&ldquo;lack of transparency around mandatory, high-volume transactional fees that can quickly inflate monthly costs&rdquo;</blockquote>
+<div class="src"><a href="https://hub.bloomclicks.com/the-definitive-2025-bill-com-pricing-guide-tiers-fees-your-true-roi-and-free-spend-management/" target="_blank">The Definitive 2025 Bill.com Pricing Guide</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Independent search confirms $0.59 ACH and 2.9% vendor card; instant transfer runs 1.0–1.49% (claim&#x27;s 1.0% is the floor).</div>
+</div></section><section><h2>ads <span class="count">12</span></h2><div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C054</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BILL&#x27;s accounts-payable paid landing page runs a demo-led, AI-automation angle targeting finance/ops buyers with a sales-demo funnel.</div>
+<blockquote>&ldquo;hook: Accelerate accounts payable with BILL | persona: finance/AP-controller | pain: busywork capturing invoices, routing approvals, processing payments | offer: demo (Request a live demo) | funnel: conversion | proof: stats (500K+ businesses, 8 hrs/wk saved, 95% day-one accuracy) | format: landing-page | longevity: long-running&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/product/accounts-payable" target="_blank">Accounts Payable Software — BILL</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> AP page verified: &#x27;Request a live demo&#x27; CTAs, 500K+, 8 hrs/week, 95% day-one accuracy — demo-led AI funnel confirmed.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C055</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL&#x27;s accounts-receivable paid page runs a speed/self-serve angle (&#x27;get paid 2X faster&#x27;) with a low-friction free-signup CTA, distinct from the demo-gated AP funnel.</div>
+<blockquote>&ldquo;hook: Get set up and send your first invoice in minutes | persona: SMB owner/AR | pain: slow collections, invoice follow-up | offer: free signup (Get Started) | funnel: conversion | proof: testimonial (Controller, Construction &amp; Engineering) | format: landing-page | started: n/a | longevity: long-running&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/product/accounts-receivable" target="_blank">Accounts Receivable — BILL</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> AR page and &#x27;2X faster&#x27; confirmed; the free-signup &#x27;Get Started&#x27; CTA and testimonial funnel details were not directly re-fetched, so held at medium.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C059</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL runs active Google paid search on brand-exact terms, evidenced by a paid-traffic campaign-tagged AP landing URL surfaced in search results.</div>
+<blockquote>&ldquo;www.bill.com/product/accounts-payable?campaign=Bill-Brand-Exact&amp;keyword=www+bill+com&amp;network=c&amp;placement=autoreconciliation&amp;traffictype=paid_d&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/product/accounts-payable?campaign=Bill-Brand-Exact&amp;keyword=www+bill+com&amp;network=c&amp;placement=autoreconciliation&amp;traffictype=paid_d" target="_blank">Accounts Payable Software — BILL (paid campaign URL)</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Campaign-tagged URL (traffictype=paid_d, Bill-Brand-Exact) indicates brand paid search but is a proxy, not an ad-library confirmation of active spend.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C060</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL&#x27;s social traffic skews to YouTube first, then LinkedIn — implying its paid social/video creative volume concentrates on YouTube and LinkedIn rather than TikTok/Meta.</div>
+<blockquote>&ldquo;Bill.com gets most of its social media traffic from YouTube, followed by LinkedIn and WhatsApp Webapp (Desktop).&rdquo;</blockquote>
+<div class="src"><a href="https://www.similarweb.com/website/bill.com/" target="_blank">bill.com Traffic Analytics — Similarweb</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Similarweb proxy for YouTube-then-LinkedIn skew; not independently re-verified, no red flags.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="inferred">
+<div class="head"><span class="cid">C061</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL&#x27;s paid funnel bifurcates by product: AP creative points to a sales-demo (&#x27;Request a live demo&#x27; / &#x27;Get a Demo with a Sales Expert&#x27;) while AR points to self-serve signup (&#x27;Get Started&#x27;) — a higher-ACV motion on payables vs. PLG on receivables.</div>
+<blockquote>&ldquo;Request a live demo&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/product/accounts-payable" target="_blank">Accounts Payable Software — BILL</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Fetch confirms AP CTA &#x27;Request a live demo&#x27; vs AR &#x27;Get Started&#x27;; higher-ACV/PLG read is reasonable inference.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C079</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL&#x27;s traffic is paid-heavy, not organic-first: Similarweb reports a ~54% organic / ~46% paid split, indicating a serious funded paid program.</div>
+<blockquote>&ldquo;Organic: 54.11% ... Paid: 45.89%&rdquo;</blockquote>
+<div class="src"><a href="https://www.similarweb.com/website/bill.com/" target="_blank">bill.com Traffic Analytics — Similarweb</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Similarweb split is proxy and time-variable; not re-verified, no red flags.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C080</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL buys competitor-conquest paid-search keywords, bidding on rival brand names — &#x27;ramp&#x27; and &#x27;divvy&#x27; appear among its top paid keywords with high CPCs.</div>
+<blockquote>&ldquo;top paid keywords ... &#x27;divvy&#x27; ($8.51), &#x27;ramp&#x27; ($11.38)&rdquo;</blockquote>
+<div class="src"><a href="https://www.similarweb.com/website/bill.com/" target="_blank">bill.com Traffic Analytics — Similarweb</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Ramp-conquest bidding plausible; note &#x27;divvy&#x27; is BILL&#x27;s own acquired product so not true competitor-conquest for that term.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C081</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Conquest paid search points to a dedicated BILL-vs-Ramp landing page positioning BILL as the fuller platform. hook: BILL vs. Ramp for financial operations | persona: SMB finance buyer | pain: Ramp lacks AR + charges for spend mgmt | offer: free demo | funnel: comparison/conversion | proof: feature-matrix | format: static LP</div>
+<blockquote>&ldquo;BILL vs. Ramp for financial operations&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/compare/bill-vs-ramp" target="_blank">BILL vs. Ramp — bill.com</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Dedicated bill.com/compare/bill-vs-ramp page confirmed positioning BILL as the fuller platform.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C085</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BILL runs a two-funnel offer split by product: AP uses a sales-led &#x27;Request a live demo&#x27; CTA (higher-ACV, assisted) while AR uses a self-serve &#x27;Get Started&#x27; CTA — a deliberate funnel-stage differentiation across the same site.</div>
+<blockquote>&ldquo;Request a live demo&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/product/accounts-payable" target="_blank">Accounts Payable Software — BILL</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Two-funnel split verified: AP &#x27;Request a live demo&#x27; vs AR &#x27;Get Started&#x27; on live pages.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C088</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL&#x27;s paid/social channel mix is concentrated on YouTube, LinkedIn and Facebook (13 social networks total); Similarweb flags Reddit as an underused channel.</div>
+<blockquote>&ldquo;YouTube, LinkedIn, and Facebook listed as the leading sources on desktop ... engaging audiences through Reddit may reveal new opportunities&rdquo;</blockquote>
+<div class="src"><a href="https://www.similarweb.com/website/bill.com/" target="_blank">bill.com Traffic Analytics — Similarweb</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Similarweb proxy for YouTube/LinkedIn/Facebook mix and Reddit-underused note; not re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C089</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">No TikTok paid footprint for BILL surfaced across searches — consistent with a B2B finance buyer that BILL does not pursue on TikTok; its social spend reads as LinkedIn/YouTube-first.</div>
+
+<div class="src"><a href="https://library.tiktok.com/ads?region=US&amp;query=bill.com" target="_blank">TikTok Commercial Content Library — no BILL result</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Absence-of-evidence (no TikTok footprint) is inference-only; consistent with B2B targeting but unprovable.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C090</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Hypothesis that BILL&#x27;s social/paid ads out-perform Rippling cannot be confirmed or refuted in-lane: no Rippling comparative data was reachable, and BILL&#x27;s official ad libraries were walled, so relative performance is unverified — treat any &#x27;outperforms&#x27; claim as unsupported.</div>
+
+<div class="src"><a href="https://www.similarweb.com/website/bill.com/" target="_blank">Coverage limitation note</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Honest non-verifiability meta-claim; correctly flags &#x27;outperforms Rippling&#x27; as unsupported given walled ad libraries.</div>
+</div></section><section><h2>social <span class="count">11</span></h2><div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C024</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL&#x27;s LinkedIn company page shows 78,632 followers and a headcount band of 1,001–5,000 employees.</div>
+<blockquote>&ldquo;Follower Count: 78,632 followers ... Company Size: 1,001-5,000 employees (approximately 3,228 employees listed)&rdquo;</blockquote>
+<div class="src"><a href="https://www.linkedin.com/company/bill" target="_blank">BILL | LinkedIn</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> LinkedIn is auth-gated so exact 78,632 follower count can&#x27;t be re-verified; a point-in-time snapshot, headcount band consistent.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C026</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL&#x27;s recent LinkedIn content pillars are AI/product education (dominant), customer success stories, sector toolkits, company culture, and accountant thought-leadership; no competitor call-outs observed.</div>
+<blockquote>&ldquo;AI Integration &amp; Innovation ... Customer Success Stories ... Industry Guidance ... Company Culture - Internal events like the FY27 Kickoff with the &quot;Re:Build&quot; theme ... Thought Leadership - Commentary on CPA technology adoption, challenging the narrative that &quot;CPAs are slow to adopt tech&quot;&rdquo;</blockquote>
+<div class="src"><a href="https://www.linkedin.com/company/bill" target="_blank">BILL | LinkedIn</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Content-pillar taxonomy is analyst characterization of LinkedIn, not independently verifiable.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C029</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL&#x27;s YouTube presence is product-education oriented — demos, webinars, and how-to (AP inbox-to-payment, spend-less-time) rather than brand/meme content.</div>
+<blockquote>&ldquo;A demo showing how Bill.com streamlines AP from inbox to payment ... A video on BILL Accounts Payable demonstrating how to &quot;spend 50% less time on your accounts payable process with AP automation&quot;&rdquo;</blockquote>
+<div class="src"><a href="https://www.youtube.com/channel/UCJ7uTRFRDKfx6AZQY8R0ghg" target="_blank">BILL - YouTube</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Product-education YouTube characterization plausible; channel content not directly re-fetched.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C030</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">BILL maintains an X/Twitter account (@billcom) used mainly for product announcements (e.g., BILL Travel Beta, AI expense features), tone corporate/product-update.</div>
+<blockquote>&ldquo;BILL maintains a Twitter/X account at @billcom ... BILL actively uses X to share updates about their products and services, including recent announcements about BILL Travel (Beta)&rdquo;</blockquote>
+<div class="src"><a href="https://x.com/billcom" target="_blank">BILL (@billcom) / X</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> @billcom X account existence is plausible but the specific product-tweet content (Travel Beta, tone) was not independently verified.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C066</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BILL runs a formal Accountant Partner Program offering marketing-development funds, dedicated Accountant Care support, and console access — a paid+organic amplification channel Rippling lacks.</div>
+<blockquote>&ldquo;You have your clients&#x27; backs. So we have yours.&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/for-accountants" target="_blank">Accounting Automation Software For Accounting Firms - BILL</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Accountant Partner Program with marketing development funds and Accountant Care support confirmed on page.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C069</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL maintains a co-marketing program for accountants (badges + co-marketing opportunities) to help firms promote BILL to their clients — an organic amplification layer.</div>
+<blockquote>&ldquo;Co-marketing opportunities with BILL&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/accountant-resource-center/co-marketing" target="_blank">Co-marketing — BILL Accountant Resource Center</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Co-marketing not found on for-accountants page but claim cites separate co-marketing URL, not independently fetched.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C070</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL&#x27;s YouTube video/demo strategy centers on &#x27;inbox-to-payment&#x27; AP automation demos with a time-savings hook, e.g. a video promising 50% less time on AP.</div>
+<blockquote>&ldquo;how to spend 50% less time on your accounts payable process&rdquo;</blockquote>
+<div class="src"><a href="https://www.youtube.com/watch?v=zuhQIcEVgLc" target="_blank">BILL Accounts Payable - YouTube</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Proxy YouTube claim; &#x27;50% less time on AP&#x27; matches BILL&#x27;s standard messaging but specific video not re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C071</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL produces demo content co-starring named accountant influencers (Cathy Iconis, Brandon Roth) framed around the QBO tech stack — accountant-influencer amplification Rippling isn&#x27;t running.</div>
+<blockquote>&ldquo;A Product Tour featuring Cathy Iconis &amp; Brandon Roth demonstrating automated AP workflows for the QBO Tech Stack&rdquo;</blockquote>
+<div class="src"><a href="https://www.youtube.com/watch?v=Vf8j4dZiZww" target="_blank">Bill.com Product Tour - Automated AP Workflows for the QBO Tech Stack - YouTube</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> YouTube accountant-influencer demo (Iconis/Roth, QBO stack) is a proxy; video not independently re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C072</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL seeds demos at accountant events — e.g. &#x27;Streamlining AP from Inbox to Payment&#x27; at Tax Academy 2025 with a solutions consultant demoing smart data capture and mobile approvals.</div>
+<blockquote>&ldquo;Bill.com Demo: Streamlining AP from Inbox to Payment | Tax Academy 2025&rdquo;</blockquote>
+<div class="src"><a href="https://www.youtube.com/watch?v=EF5Q3FZ8f-g" target="_blank">Bill.com Demo: Streamlining AP from Inbox to Payment | Tax Academy 2025 - YouTube</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Tax Academy 2025 demo title is a proxy; event-seeding pattern plausible, not re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C073</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL&#x27;s main LinkedIn company page has roughly 76,900 followers, anchoring a corporate finance-thought-leadership presence.</div>
+<blockquote>&ldquo;BILL has 76,903 followers on LinkedIn on their main company page.&rdquo;</blockquote>
+<div class="src"><a href="https://www.linkedin.com/company/bill" target="_blank">BILL | LinkedIn</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Proxy follower count; plausible but LinkedIn figures not independently confirmed.</div>
+</div>
+<div class="claim" data-v="unsupported" data-e="proxy">
+<div class="head"><span class="cid">C074</span>
+<span class="pill p-bad">unsupported</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Founder-CEO René Lacerte is an active thought-leadership voice for BILL, positioned around SMB championing and &#x27;automating the future of finance.&#x27;</div>
+<blockquote>&ldquo;René Lacerte is the CEO and Founder of BILL, the intelligent finance platform trusted by half a million businesses&rdquo;</blockquote>
+<div class="src"><a href="https://www.linkedin.com/in/renelacerte/" target="_blank">René Lacerte - CEO/Founder BILL - LinkedIn</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> LinkedIn bio confirms founder-CEO but quote does not carry &#x27;active thought-leadership&#x27; or the quoted &#x27;automating the future of finance&#x27; framing.</div>
+</div></section><section><h2>news <span class="count">4</span></h2><div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C013</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">BILL announced it will reduce its workforce by up to 30% by the end of Q4 FY2026 as part of an AI-native transformation.</div>
+<blockquote>&ldquo;reduce our workforce by up to 30% by the end of Q4 FY2026&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/blog/a-message-to-bill-employees-may-2026" target="_blank">A message to BILL employees from CEO and Founder</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Blog confirms up to 30% workforce reduction by end of Q4 FY2026 within AI-native transformation.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C020</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL partnered with AI-native ERP provider Rillet for a real-time two-way AP/spend/finance data integration (March 2, 2026).</div>
+<blockquote>&ldquo;BILL and Rillet Partner to Power Real-Time, AI-Native Finance Workflows&rdquo;</blockquote>
+<div class="src"><a href="https://www.businesswire.com/news/home/20260302023240/en/BILL-and-Rillet-Partner-to-Power-Real-Time-AI-Native-Finance-Workflows" target="_blank">BILL and Rillet Partner to Power Real-Time, AI-Native Finance Workflows</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> BILL–Rillet partnership plausible; Businesswire release not re-fetched but consistent with other ERP-partnership activity.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C021</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL and NetSuite announced a partnership to accelerate accounts payable processes, extending BILL&#x27;s ERP channel reach.</div>
+<blockquote>&ldquo;NetSuite and BILL Partner to Accelerate Accounts Payable Processes&rdquo;</blockquote>
+<div class="src"><a href="https://www.prnewswire.com/news-releases/netsuite-and-bill-partner-to-accelerate-accounts-payable-processes-302577217.html" target="_blank">NetSuite and BILL Partner to Accelerate Accounts Payable Processes</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> NetSuite–BILL AP partnership press release confirmed present in search results.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C022</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL reported ~16% core revenue growth in Q3 FY2026 and reached its first milestone of GAAP profitability, per earnings coverage.</div>
+<blockquote>&ldquo;delivered core revenue growth of 16% in Q3 2026 and achieved its first milestone of GAAP profitability&rdquo;</blockquote>
+<div class="src"><a href="https://finance.yahoo.com/markets/stocks/articles/bill-com-holdings-inc-q3-123000808.html" target="_blank">Bill.com Holdings, Inc. Q3 2026 Earnings Call Summary</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> 16% core revenue growth and first GAAP profitability milestone confirmed by Investing.com and BILL IR; proxy-grade caps confidence at medium.</div>
+</div></section><section><h2>customers <span class="count">7</span></h2><div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C027</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL runs a deliberate accountant-community play, publicly claiming affinity and 9,500+ accounting-firm partners.</div>
+<blockquote>&ldquo;BILL ❤️ Accountants—always has, always will ... 9,500+ accounting firms choose them as their partner&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/for-accountants" target="_blank">Accounting Automation Software For Accounting Firms - BILL</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> 9,500+ accounting-firm partner claim is BILL self-assertion, correctly graded stated_by_competitor.</div>
+</div>
+<div class="claim" data-v="unsupported" data-e="proxy">
+<div class="head"><span class="cid">C032</span>
+<span class="pill p-bad">unsupported</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Demand-side: buyers report support degradation and chronic sync errors (QuickBooks Enterprise, NetSuite), with a G2 complaint spike in late 2025 attributed to 2025 layoffs.</div>
+<blockquote>&ldquo;G2 reviews from late 2025 show a measurable spike in support complaints, particularly around chronic sync errors that support couldn&#x27;t fix ... the 2025 BILL layoffs degraded customer support quality for certain integrations&rdquo;</blockquote>
+<div class="src"><a href="https://www.kenfromfinance.com/blog/bill-com-alternatives" target="_blank">Bill.com Alternatives in 2026 | Ken from Finance</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> The &#x27;measurable G2 spike attributed to 2025 layoffs&#x27; comes solely from kenfromfinance.com, an uncited vendor marketing blog (Roulette Technologies promoting its own &#x27;Ken&#x27; AP tool) — asserted, never substantiated, not a genuine demand-side source.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C037</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL leans on a two-number social-proof band: installed base plus a payment network.</div>
+<blockquote>&ldquo;500K+ businesses are automating their financial operations with BILL&rdquo;</blockquote>
+<div class="src"><a href="https://bill.com" target="_blank">BILL Homepage</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> &#x27;500K+ businesses&#x27; and network figures (8.3M members, $345B volume) verified on page; self-asserted numbers so capped at medium.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C045</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL claims deep penetration of the top accounting firms as its channel-credibility proof.</div>
+<blockquote>&ldquo;80%+ of the top 100 US accounting firms trust BILL&rdquo;</blockquote>
+<div class="src"><a href="https://bill.com/accountants" target="_blank">BILL for Accountants</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> &#x27;80%+ of the top 100 US accounting firms trust BILL&#x27; verified on page; unverifiable self-assertion, capped medium.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C068</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">BILL leans on accountant-ecosystem social proof: it claims 98 of the top 100 US accounting firms and 9,500+ partner firms.</div>
+<blockquote>&ldquo;98/100 of top US accounting firms trust BILL&quot; and &quot;9,500+ accounting firms partner with BILL&rdquo;</blockquote>
+<div class="src"><a href="https://www.bill.com/for-accountants" target="_blank">Accounting Automation Software For Accounting Firms - BILL</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> &#x27;98/100 of top US accounting firms&#x27; and &#x27;9,500+&#x27; confirmed as BILL&#x27;s own claims; self-assertion caps at medium.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C077</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Recurring buyer complaint: support is chat/email-only with no phone, slow and often unhelpful — a positioning attack surface against BILL&#x27;s declared efficiency story.</div>
+<blockquote>&ldquo;Lack of phone support, with only chat or email available, making problem resolution tedious&rdquo;</blockquote>
+<div class="src"><a href="https://www.capterra.com/p/166559/BILL/" target="_blank">BILL Accounts Payable &amp; Receivable Reviews 2026 | Capterra</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Capterra review proxy for no-phone-support complaint; consistent, not re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C078</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Recurring buyer complaint: payment delivery dates get pushed when volumes/amounts are high, so payments arrive late — undercutting the &#x27;inbox-to-payment&#x27; reliability BILL markets.</div>
+<blockquote>&ldquo;payment delivery dates get adjusted when payment volumes and amounts are high, making payments arrive late&rdquo;</blockquote>
+<div class="src"><a href="https://www.capterra.com/p/166559/BILL/" target="_blank">BILL Accounts Payable &amp; Receivable Reviews 2026 | Capterra</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Capterra review proxy for pushed payment-delivery dates; consistent, not re-verified.</div>
+</div></section>
+<section><h2>post-eval corrections <span class="count">1</span></h2><p class="note">The eval harness catching things is the audit trail of it working.</p><ul class="corr"><li>Repair verify pass: the original serial verifier truncated at ~21 verdicts on a 90-claim ledger; the remaining claims were re-verified with the chunked parallel verifier (24 claims/reviewer).</li></ul></section>
+<footer>Machine-readable twin: the claims JSON in the same folder. Grades — measured: read from a fetched page ·
+self-claimed: the competitor says so · proxy: third-party sourced · inferred: analyst read with basis stated.</footer>
+<script>
+document.getElementById('filters').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#filters button').forEach(x => x.classList.toggle('on', x === b));
+  const f = b.dataset.f;
+  document.querySelectorAll('.claim').forEach(c => {
+    let show = f === 'all'
+      || (f === 'v:flagged' && ['unsupported','contradicted'].includes(c.dataset.v))
+      || (f.startsWith('v:') && c.dataset.v === f.slice(2))
+      || (f.startsWith('e:') && c.dataset.e === f.slice(2));
+    c.classList.toggle('hidden', !show);
+  });
+  document.querySelectorAll('section').forEach(s => {
+    const any = s.querySelectorAll('.claim:not(.hidden)').length || !s.querySelector('.claim');
+    s.style.display = any ? '' : 'none';
+  });
+});
+</script>
+</body></html>

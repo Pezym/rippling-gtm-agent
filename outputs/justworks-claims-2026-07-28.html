@@ -1,0 +1,894 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Justworks — claims ledger</title>
+<style>
+  :root { --ink:#1f2328; --dim:#6a737d; --faint:#98a1ab; --line:#e6e8eb; --soft:#f6f7f8;
+          --ok:#0e7a55; --okbg:#e7f5ef; --warn:#8a5a00; --warnbg:#fdf3dc;
+          --bad:#b42318; --badbg:#fdecea; --blue:#0b6bcb; --bluebg:#e8f1fc; }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#e6e8eb; --dim:#9aa4b0; --faint:#6b7480; --line:#2a2f36; --soft:#171a1f;
+             --ok:#4cc596; --okbg:#0d2b20; --warn:#e2b93d; --warnbg:#2c2410;
+             --bad:#f08578; --badbg:#331512; --blue:#6cb0f5; --bluebg:#10233a; }
+    body { background:#0f1114; }
+  }
+  * { box-sizing:border-box; margin:0; }
+  body { font:15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+         color:var(--ink); max-width:860px; margin:0 auto; padding:48px 28px 90px; }
+  h1 { font-size:30px; letter-spacing:-.4px; }
+  .sub { color:var(--dim); margin-top:6px; }
+  .statbar { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 6px; }
+  .stat { border:1px solid var(--line); border-radius:999px; padding:5px 13px; font-size:12.5px; color:var(--dim); }
+  .stat b { color:var(--ink); }
+  .filters { position:sticky; top:0; background:inherit; backdrop-filter:blur(6px);
+             display:flex; flex-wrap:wrap; gap:6px; padding:14px 0; border-bottom:1px solid var(--line);
+             margin-bottom:10px; z-index:5; background-color:rgba(255,255,255,.85); }
+  @media (prefers-color-scheme: dark) { .filters { background-color:rgba(15,17,20,.85); } }
+  .filters button { border:1px solid var(--line); background:none; color:var(--dim); border-radius:999px;
+                    padding:5px 13px; font:inherit; font-size:12.5px; cursor:pointer; }
+  .filters button.on { background:var(--bluebg); color:var(--blue); border-color:var(--blue); }
+  section { margin-top:34px; }
+  h2 { font-size:19px; padding-bottom:8px; border-bottom:1px solid var(--line); margin-bottom:14px;
+       text-transform:capitalize; }
+  .count { color:var(--faint); font-weight:400; font-size:14px; }
+  .claim { border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:12px; }
+  .claim.hidden { display:none; }
+  .head { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:8px; }
+  .cid { font-family:ui-monospace, Menlo, monospace; font-size:12px; color:var(--blue);
+         background:var(--bluebg); border-radius:6px; padding:2px 8px; }
+  .pill { font-size:11.5px; border-radius:999px; padding:2px 10px; }
+  .p-ok { color:var(--ok); background:var(--okbg); }
+  .p-warn { color:var(--warn); background:var(--warnbg); }
+  .p-bad { color:var(--bad); background:var(--badbg); }
+  .p-dim { color:var(--dim); background:var(--soft); }
+  .text { font-size:15px; }
+  blockquote { margin:10px 0 8px; padding:8px 14px; border-left:3px solid var(--line);
+               color:var(--dim); font-style:italic; background:var(--soft); border-radius:0 8px 8px 0; }
+  .src { font-size:12.5px; color:var(--faint); }
+  .src a { color:var(--blue); text-decoration:none; }
+  .vnote { margin-top:8px; font-size:12.5px; color:var(--dim); background:var(--soft);
+           border-radius:8px; padding:7px 11px; }
+  .vnote b { font-weight:600; }
+  .note { color:var(--dim); font-size:13px; margin-bottom:10px; }
+  .corr { padding-left:20px; color:var(--dim); font-size:13.5px; }
+  .corr li { margin-bottom:8px; }
+  footer { margin-top:40px; color:var(--faint); font-size:12.5px; border-top:1px solid var(--line); padding-top:14px; }
+</style></head><body>
+<h1>Justworks — claims ledger</h1>
+<div class="sub">Every fact behind the brief, with its verbatim quote, source, and how hard it survived verification.
+Generated 2026-07-29 · model claude-opus-4-8</div>
+<div class="statbar">
+  <span class="stat"><b>73</b> claims</span>
+  <span class="stat"><b>18</b> confirmed</span>
+  <span class="stat"><b>54</b> plausible</span>
+  <span class="stat"><b>1</b> flagged</span>
+  <span class="stat"><b>2</b> measured · <b>52</b> proxy ·
+      <b>3</b> self-claimed · <b>16</b> inferred</span>
+</div>
+<div class="filters" id="filters">
+  <button class="on" data-f="all">all</button>
+  <button data-f="v:confirmed">confirmed</button>
+  <button data-f="v:plausible">plausible</button>
+  <button data-f="v:flagged">flagged</button>
+  <button data-f="e:measured">measured</button>
+  <button data-f="e:proxy">proxy</button>
+  <button data-f="e:stated_by_competitor">self-claimed</button>
+  <button data-f="e:inferred">inferred</button>
+</div>
+<section><h2>messaging <span class="count">3</span></h2><div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C048</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks&#x27; PEO value prop centers on giving small companies access to large-group-style health insurance and premium benefits (401k, mental health, on-demand primary care, family-building) normally reserved for large employers — the &#x27;enterprise-grade benefits for small companies&#x27; framing the orchestrator flagged.</div>
+<blockquote>&ldquo;Justworks PEO is the most premium benefits offering, giving companies access to benefits usually reserved for large companies such as large group health insurance at competitive rates&rdquo;</blockquote>
+<div class="src"><a href="https://help.justworks.com/hc/en-us/articles/34505385091867-Justworks-PEO-Key-Features" target="_blank">Justworks PEO: Key Features – Justworks Help Center</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Sourced from Justworks&#x27; own help center (self-assertion); premium large-group benefits framing is on-brand but vendor-stated, not independent.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C057</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Justworks positions itself in growth/momentum terms as a self-description, describing itself as the fastest-growing HR technology company, per a search-engine synthesis of its own marketing copy.</div>
+<blockquote>&ldquo;Justworks is the fastest growing HR technology company that helps entrepreneurs and businesses grow&rdquo;</blockquote>
+<div class="src"><a href="https://www.justworks.com/" target="_blank">Justworks homepage synthesis</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Self-description grade is honest; &#x27;fastest growing&#x27; is dated marketing copy, correctly flagged stated_by_competitor.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C060</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">hook: relief-from-operational-chaos via surreal metaphor (founder cloning herself, puppeteering employees) | persona: startup/small-business founder | pain: doing everything alone as a business grows | offer: brand-awareness (no direct CTA/offer surfaced) | funnel: awareness | proof: none (emotional storytelling, not feature/stat led) | format: video (connected TV + online video) | started: 2026-07 | longevity: new-test (campaign is &lt;1 month old as of observation).</div>
+<blockquote>&ldquo;leans into surreal visual metaphors that dramatise the feeling of having to be everywhere at once... discovering relief in handing over payroll, compliance, HR and hiring&rdquo;</blockquote>
+<div class="src"><a href="https://www.creativereview.co.uk/justworks-campaign-film-quality-meats-freddie-powell/" target="_blank">Justworks ads capture the emotional chaos of entrepreneurship — Creative Review</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> CreativeReview corroborates surreal-metaphor relief hook, founder persona, awareness/brand funnel, video format.</div>
+</div></section><section><h2>positioning <span class="count">17</span></h2><div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C009</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Analyst commentary characterizes Justworks as shifting from a domestic U.S. PEO model toward a &#x27;global HCM provider&#x27; via EOR, expanding its addressable market from ~6 million U.S. SMBs to an effectively global TAM.</div>
+<blockquote>&ldquo;The company is moving from a domestic PEO model toward a global HCM provider via EOR, expanding addressable market from approximately 6 million U.S. SMBs to an effectively global TAM.&rdquo;</blockquote>
+<div class="src"><a href="https://builtin.com/company/justworks/faq/stability-growth" target="_blank">Justworks Company Growth, Stability &amp; Outlook 2026 | Built In</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> PEO-to-global-HCM narrative is a coherent inference but sourced from an auto-generated FAQ, not named analyst research.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C022</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks markets itself as having no implementation fees and no long-term contracts, with all pricing structured as simple monthly PEPM rates — a self-serve-friendly, low-commitment packaging choice distinct from typical enterprise PEO sales cycles.</div>
+<blockquote>&ldquo;Justworks charges no implementation fees and requires no long-term contracts—all pricing is monthly-based.&rdquo;</blockquote>
+<div class="src"><a href="https://remotepeople.com/providers/justworks-review/pricing/" target="_blank">Justworks Pricing Details</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> No-implementation-fee / no-contract / monthly PEPM is widely repeated about Justworks; sourced from one review, not the vendor page (blocked).</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C023</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks publishes a direct head-to-head comparison landing page targeting TriNet by name, indicating an active competitive-conquesting SEO/positioning strategy aimed at TriNet&#x27;s customer base.</div>
+<blockquote>&ldquo;Justworks vs. TriNet - Compare Product Features - Justworks&rdquo;</blockquote>
+<div class="src"><a href="https://www.justworks.com/compare/justworks-vs-trinet" target="_blank">Justworks vs. TriNet - Compare Product Features - Justworks</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> A Justworks-vs-TriNet compare page is highly consistent with known vendor SEO practice; not fetched (justworks.com returned 403).</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="inferred">
+<div class="head"><span class="cid">C025</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks&#x27; flat per-employee-per-month value metric is structurally different from Insperity, which reportedly prices as a percentage of gross payroll (2-5%) — meaning Insperity&#x27;s effective cost scales with wage levels while Justworks&#x27; is wage-agnostic, a core positioning differentiator around pricing predictability (inferred from aggregated search snippets: &quot;Insperity charges a percentage of gross payroll (2–5%).&quot;)</div>
+
+<div class="src"><a href="https://www.google.com/search?q=justworks+positioning" target="_blank">Web search synthesis: Justworks transparent pricing vs TriNet/ADP/Insperity</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Multiple PEO sources confirm Insperity prices as ~2-5% of gross payroll; proxy grade caps at medium.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C026</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Reviewer complaints aggregated by third parties describe TriNet imposing an annual &#x27;Platform Innovation Fee&#x27; and double-digit renewal price increases — the kind of post-signup opacity that Justworks&#x27; published flat-rate PEPM pricing is positioned against (inferred from aggregated search snippets: &quot;the most consistent reviewer complaint about TriNet is renewal pricing, including a reported annual &quot;Platform Innovation&quot;)</div>
+
+<div class="src"><a href="https://www.google.com/search?q=justworks+positioning" target="_blank">Web search synthesis: Justworks transparent pricing vs TriNet/ADP/Insperity</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> TriNet renewal-increase complaints are widely reported, but the specific &#x27;Platform Innovation Fee&#x27; label is unverified analyst synthesis.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C027</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Third-party synthesis characterizes Justworks&#x27; overall market approach as built on transparent flat-fee PEPM pricing, a clean software UI, and chat-first support — contrasted against TriNet/Insperity being described by buyers as producing complicated, hard-to-understand sales proposals (inferred from aggregated search snippets: &quot;Justworks built its brand on transparent flat-fee PEPM pricing, a clean software experience, and a chat-first support mo&quot;)</div>
+
+<div class="src"><a href="https://www.google.com/search?q=justworks+positioning" target="_blank">Web search synthesis: Justworks transparent pricing vs TriNet/ADP/Insperity</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Pricing-transparency framing independently corroborated; the buyer-side TriNet/Insperity contrast is interpretive synthesis, not measured.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C043</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks&#x27; homepage/root page title frames the company as a PEO-and-payroll company for small businesses, not a broader &#x27;people platform&#x27; or HR suite.</div>
+<blockquote>&ldquo;Justworks: PEO &amp; Payroll Solutions for Small Businesses - Justworks&rdquo;</blockquote>
+<div class="src"><a href="https://www.justworks.com/" target="_blank">Justworks: PEO &amp; Payroll Solutions for Small Businesses</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Homepage-title framing as PEO/payroll for small businesses is consistent with Justworks&#x27; positioning; page title not re-fetched.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C046</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks sets a very low entry floor for its PEO/payroll motion, allowing signup with as few as two W-2 employees, reinforcing a micro-business/startup ICP rather than a mid-market floor.</div>
+<blockquote>&ldquo;Businesses can get benefits and payroll started with as few as two W-2 employees.&rdquo;</blockquote>
+<div class="src"><a href="https://help.justworks.com/hc/en-us/articles/34505385091867-Justworks-PEO-Key-Features" target="_blank">Justworks PEO: Key Features – Justworks Help Center</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Justworks PEO minimum of 2 W-2 employees confirmed via help center and independent sources; proxy caps at medium.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C047</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">A third-party competitor (Rippling) characterizes Justworks&#x27; core ICP as very small businesses of 1-25 employees needing U.S.-only payroll and bundled benefits via PEO — a narrower headcount band than Rippling claims to serve.</div>
+<blockquote>&ldquo;Justworks is best suited for very small businesses with 1–25 employees that primarily need U.S. payroll and bundled benefits delivered through a PEO.&rdquo;</blockquote>
+<div class="src"><a href="https://www.rippling.com/blog/rippling-vs-justworks-hr-payroll-peo-comparison" target="_blank">Rippling vs. Justworks: The 2025 Comparison for HR, Payroll, and PEO</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> This is a competitor (Rippling) self-serving characterization narrowing Justworks to 1-25; treat as stated_by_competitor, and it sits in mild tension with C038&#x27;s 20-200 framing.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C049</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks maintains a dedicated head-to-head page targeting Rippling by name, confirming Rippling is a named/feared alternative in Justworks&#x27; own comparison content.</div>
+<blockquote>&ldquo;Justworks vs. Rippling - Compare Product Features - Justworks&rdquo;</blockquote>
+<div class="src"><a href="https://www.justworks.com/compare/justworks-vs-rippling" target="_blank">Justworks vs. Rippling - Compare Product Features</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Quote is the page title; a Justworks-vs-Rippling compare page plausibly exists and &#x27;named alternative&#x27; inference is mild, but not re-verified live.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C050</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">The AEO surface for the query &#x27;&quot;Justworks&quot; vs Rippling&#x27; is contested, not an open opening: results mix Justworks&#x27; own compare page, Rippling&#x27;s own &#x27;Rippling vs. Justworks: The 2025 Comparison&#x27; blog post, and third-party review sites (TrustRadius, BusinessNewsDaily), meaning Rippling already owns competing content on its own comparison query rather than ceding the surface to neutral third parties.</div>
+<blockquote>&ldquo;Rippling vs. Justworks: The 2025 Comparison for HR, Payroll, and PEO | Rippling&rdquo;</blockquote>
+<div class="src"><a href="https://www.rippling.com/blog/rippling-vs-justworks-hr-payroll-peo-comparison" target="_blank">query: &quot;Justworks&quot; vs Rippling comparison</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Rippling&#x27;s 2025 comparison blog post is confirmed to exist; the broader &#x27;contested surface&#x27; composition is inferred, not directly evidenced.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C051</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">For the query &#x27;Justworks alternatives&#x27;, Rippling itself ranks with a dedicated content asset (&#x27;Top 10 Justworks Competitors &amp; Alternatives in 2025&#x27;), actively competing for bottom-of-funnel switcher traffic rather than leaving that surface to neutral listicle sites alone.</div>
+<blockquote>&ldquo;Top 10 Justworks Competitors &amp; Alternatives in 2025&rdquo;</blockquote>
+<div class="src"><a href="https://www.rippling.com/blog/justworks-competitors" target="_blank">query: Justworks alternatives best PEO for startups small business</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Quote is a Rippling asset title supporting existence of a Justworks-competitors page; ranking claim is inferred, not measured.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C052</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">For the query &#x27;best PEO for startups small business&#x27;, the visible results are dominated by neutral third-party review/listicle sites (SelectHub, Netchex, Benely, Ignition Benefits) rather than Justworks or Rippling owned content — an open opening on this specific query where neither vendor currently controls the answer-engine surface.</div>
+<blockquote>&ldquo;query: Justworks alternatives best PEO for startups small business — top non-vendor results: SelectHub, Netchex, Benely, Ignition Benefits&rdquo;</blockquote>
+<div class="src"><a href="https://www.selecthub.com/peo-software/justworks/alternatives/" target="_blank">Top Justworks Alternatives &amp; Competitors 2026</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Self-referential &#x27;quote&#x27; with no SERP evidence; open-opening claim is speculative and inferred.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C053</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">A third-party comparison source frames Justworks&#x27; competitive edge over Rippling as service/pricing/benefits quality rather than platform breadth: dedicated customer service, transparent pricing, and premium benefits, contrasted with Rippling&#x27;s broader HR+IT+spend platform.</div>
+<blockquote>&ldquo;Customers choose Justworks over Rippling to gain dedicated customer service, transparent pricing, and top-notch benefits and perks for their HR teams and employees.&rdquo;</blockquote>
+<div class="src"><a href="https://softwarefinder.com/resources/rippling-vs-justworks" target="_blank">Rippling Vs Justworks: An In-Depth Comparison</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Third-party marketing snippet supports the framing directly, but it&#x27;s a low-authority proxy source.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C058</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">The bifurcation between a cheap standalone Payroll SKU (~$8/employee/month) and a much pricier PEO bundle (~$79-109/employee/month) suggests Justworks uses Payroll as a low-friction wedge/entry product to later upsell customers into the higher-margin PEO co-employment relationship.</div>
+
+<div class="src"><a href="https://elearningindustry.com/justworks-pricing" target="_blank">inferred from pricing tier spread</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Wedge/upsell strategy is a reasonable inference; empty quote, holds regardless of exact PEO Basic figure.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C070</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Justworks maintains a dedicated /compare landing page positioning itself head-to-head against PEO/payroll competitors, indicating an active bottom-funnel comparison-intent content/paid-search strategy.</div>
+<blockquote>&ldquo;Compare Justworks to Competitors - Justworks&rdquo;</blockquote>
+<div class="src"><a href="https://www.justworks.com/compare" target="_blank">Compare Justworks to Competitors — Justworks</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Quote is a /compare page title supporting existence; paid-search strategy claim is inferred beyond the evidence.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C071</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks&#x27; recurring category narrative — giving small businesses access to &#x27;big company&#x27;/enterprise-grade benefits — persists across blog and product-page messaging, independent of the new brand campaign.</div>
+<blockquote>&ldquo;Justworks&#x27; PEO setup lets smaller companies tap into enterprise-level benefits that would otherwise be out of reach, which is a big plus for small and mid-size businesses that want to offer strong benefits.&rdquo;</blockquote>
+<div class="src"><a href="https://www.justworks.com/blog/benefits-for-startups-heres-how-to-offer-affordable-high-quality-perks" target="_blank">A Guide to Employee Benefits for Startups — Justworks</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Enterprise-grade-benefits-for-small-business narrative supported by quote; correctly graded stated_by_competitor.</div>
+</div></section><section><h2>product <span class="count">4</span></h2><div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C001</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks operates as an Employer of Record with owned legal entities in 11 countries (Brazil, Canada, Chile, Colombia, Costa Rica, Ireland, Mexico, the Netherlands, Portugal, Spain, and the UK) and partners with third-party EOR providers in 90+ additional countries.</div>
+<blockquote>&ldquo;Justworks owns entities and operates as an EOR in 11 countries, including Brazil, Canada, Chile, Colombia, Costa Rica, Ireland, Mexico, the Netherlands, Portugal, Spain, and the U.K., and partners with third-party providers in over 90 others.&rdquo;</blockquote>
+<div class="src"><a href="https://www.justworks.com/eor" target="_blank">Employer of Record (EOR) Services - Justworks (via search snippet)</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> 11-country list and 90+ partner framing reproduced verbatim across third-party reviews; some sources give a different 17-country list, so treat exact roster as as-reported.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C011</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Justworks launched a standalone Payroll product in 2023 (payroll/tax support without full PEO co-employment enrollment) and added an Analytics feature in 2026, broadening the platform beyond its core PEO bundle.</div>
+<blockquote>&ldquo;A standalone Payroll product launched in 2023 and an Analytics feature arrived in 2026, broadening the platform&#x27;s scope.&rdquo;</blockquote>
+<div class="src"><a href="https://builtin.com/company/justworks/faq/stability-growth" target="_blank">Justworks Company Growth, Stability &amp; Outlook 2026 | Built In</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Standalone Payroll (2023) is consistent with other pricing claims; 2026 Analytics feature rests on unverified BuiltIn FAQ.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C038</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks&#x27; PEO co-employment/benefits-pooling model is positioned to give 20-200 employee companies access to large-group carriers (Aetna, Kaiser, UnitedHealthcare) normally reserved for 50+ employee companies — the mechanism underlying its &#x27;lock-in&#x27; tradeoff.</div>
+<blockquote>&ldquo;gives companies with 20-200 employees access to Fortune 500-caliber benefits through co-employment and pooling... to tap into Aetna, Kaiser, and UnitedHealthcare plans normally reserved for companies with 50+ employees&rdquo;</blockquote>
+<div class="src"><a href="https://www.business.com/reviews/justworks/" target="_blank">Justworks PEO Review 2026 | business.com</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Co-employment benefits-pooling to large-group carriers is standard PEO mechanics; specific 20-200 band and named carriers from a single review site.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C054</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">A third-party comparison source calls out Justworks&#x27; integration ecosystem as thin, limiting it to roughly eight software integrations versus deeper ecosystems from competitors.</div>
+<blockquote>&ldquo;The Justworks platform can integrate with only eight software applications for HR and financial management, which is far fewer than many competitors&rdquo;</blockquote>
+<div class="src"><a href="https://www.businessnewsdaily.com/rippling-vs-justworks" target="_blank">Rippling vs. Justworks Comparison: Which Is Best in 2026?</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Quote supports &#x27;eight integrations&#x27; claim; figure may be dated, single proxy source.</div>
+</div></section><section><h2>pricing <span class="count">16</span></h2><div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C003</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks Payroll supports paying international contractors directly in 50+ countries at $39/month per contractor.</div>
+<blockquote>&ldquo;For managing and making payments to international contractors, Justworks charges $39/month per contractor... in 50+ countries.&rdquo;</blockquote>
+<div class="src"><a href="https://help.justworks.com/hc/en-us/articles/30467390157851-Justworks-Payroll-International-Contractors-and-Payments" target="_blank">Justworks Payroll: International Contractors and Payments – Help Center</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> $39/mo international contractor rate is internally consistent with C019 and Justworks help-center URL; 50+ countries not independently re-verified.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C013</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks PEO Basic tier is priced at $59 per employee per month, covering payroll, contractor payments, compliance tools, 401(k) management and support.</div>
+<blockquote>&ldquo;$59 per month per employee&quot; includes payroll, contractor payments, compliance tools, 401(k) management, and support.&rdquo;</blockquote>
+<div class="src"><a href="https://remotepeople.com/providers/justworks-review/pricing/" target="_blank">Justworks Pricing Details</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> $59 Basic PEPM with payroll/contractor/compliance/401k/support corroborated across multiple 2026 pricing reviews.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C014</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks PEO Plus tier is priced at $109 per employee per month, adding health insurance administration, HSA/FSA accounts, and mental health/fertility benefits management on top of Basic.</div>
+<blockquote>&ldquo;$109 per month per employee&quot; adds health insurance administration, HSA/FSA accounts, and mental health/fertility benefits management.&rdquo;</blockquote>
+<div class="src"><a href="https://remotepeople.com/providers/justworks-review/pricing/" target="_blank">Justworks Pricing Details</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> $109 Plus PEPM corroborated by 2026 sources; added-benefit feature list is as-reported, not re-verified line-by-line.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C015</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Pricing figures for the Basic tier are inconsistent across third-party sources — most 2026 sources cite $59/employee/month but some cite $79/employee/month — indicating no single authoritative public number is being consistently indexed, likely because Justworks&#x27; own pricing page could not be independently verified (blocked) (inferred from aggregated search snippets: &quot;Some sources list PEO Basic at $79 per employee per month instead of $59, though the most recent sources from June 2026 &quot;)</div>
+
+<div class="src"><a href="https://www.google.com/search?q=justworks+pricing" target="_blank">Web search synthesis: Justworks pricing Basic/Plus 2026</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> My searches consistently returned $59; the $79 variant is asserted but I did not surface it, so the inconsistency claim is weakly supported.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C016</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks offers a standalone payroll-only product priced at a $50 flat monthly base fee plus $8 per employee per month, covering payroll management, tax filings, HR tools, and 24/7 support.</div>
+<blockquote>&ldquo;$50 + $8 per person&quot; monthly for basic payroll management&rdquo;</blockquote>
+<div class="src"><a href="https://remotepeople.com/providers/justworks-review/pricing/" target="_blank">Justworks Pricing Details</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> $50 base + $8/employee standalone payroll from single review site; not independently confirmed.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C017</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks standalone Payroll product is only available in a limited set of states (e.g. Arizona, Arkansas, California, Colorado, and a few others), not nationwide (inferred from aggregated search snippets: &quot;standalone payroll service is currently only offered in specific states, including Arizona, Arkansas, California, Colora&quot;)</div>
+
+<div class="src"><a href="https://www.google.com/search?q=justworks+pricing" target="_blank">Web search synthesis: Justworks Payroll standalone pricing</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> State-limited standalone payroll availability is a snippet aggregate; specific state list not re-verified against Justworks.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C018</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks charges a $8 per contractor per month add-on fee for contractor payroll processing, separate from full PEO employee pricing.</div>
+<blockquote>&ldquo;Contractor payroll add-on:** &quot;$8 per contractor&quot; monthly&rdquo;</blockquote>
+<div class="src"><a href="https://remotepeople.com/providers/justworks-review/pricing/" target="_blank">Justworks Pricing Details</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> $8/contractor domestic add-on consistent with C016; single-source, not re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C019</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks prices international contractor payments at $39 per contractor per month, distinct from its much higher international employee (EOR) rate.</div>
+<blockquote>&ldquo;International contractor payments:** &quot;$39 per contractor&quot; monthly&rdquo;</blockquote>
+<div class="src"><a href="https://remotepeople.com/providers/justworks-review/pricing/" target="_blank">Justworks Pricing Details</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> $39/mo international contractor payment consistent with help-center-sourced C003; distinct from EOR rate.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C020</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks prices international employee-of-record (EOR) hiring at $599 per month per employee — roughly 5-10x the domestic PEO PEPM rate — indicating international full-employment is a premium, low-volume add-on rather than a core value metric.</div>
+<blockquote>&ldquo;International employee hiring:** &quot;$599 per month per employee&quot;&rdquo;</blockquote>
+<div class="src"><a href="https://remotepeople.com/providers/justworks-review/pricing/" target="_blank">Justworks Pricing Details</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Search corroborates ~$599–$604/employee/month EOR; minor figure variance, but premium multiple vs PEO holds.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C021</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Time-tracking is sold as a separate $8-per-employee add-on across either package rather than being bundled into Basic or Plus, showing Justworks&#x27; packaging is not purely good-better-best but has modular add-ons layered on top.</div>
+<blockquote>&ldquo;Time-tracking feature:** &quot;$8 per employee&quot; for any package&rdquo;</blockquote>
+<div class="src"><a href="https://remotepeople.com/providers/justworks-review/pricing/" target="_blank">Justworks Pricing Details</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> $8/employee time-tracking add-on from single review site; modular-packaging conclusion is reasonable.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C024</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Industry analysis positions Justworks&#x27; Basic PEPM rate (~$59/employee/month) as roughly $120/employee/year cheaper than TriNet&#x27;s comparable plan (~$69/employee/month), and roughly $192/employee/year cheaper than ADP&#x27;s PEO offering (~$75/employee/month) — an undercut positioning vs both incumbents, though these are third-party aggregated estimates, not confirmed list prices for TriNet/ADP (inferred from aggregated search snippets: &quot;Justworks&#x27; Basic plan at $59/employee/month is competitively priced, with a similar plan from TriNet costing around $69/&quot;)</div>
+
+<div class="src"><a href="https://www.google.com/search?q=justworks+pricing" target="_blank">Web search synthesis: Justworks transparent pricing vs TriNet/ADP/Insperity</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> TriNet ~$69 and ADP ~$75 are third-party estimates, not confirmed list prices; claim self-flags this, so undercut framing is directional only.</div>
+</div>
+<div class="claim" data-v="contradicted" data-e="inferred">
+<div class="head"><span class="cid">C028</span>
+<span class="pill p-bad">contradicted</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">No public information was recoverable in this run on Justworks minimum employee-count requirements, free-trial availability, or annual-vs-monthly billing deltas — these specific data points were absent from all reachable proxy sources.</div>
+<blockquote>&ldquo;No minimum employee requirements are specified in the document.&rdquo;</blockquote>
+<div class="src"><a href="https://remotepeople.com/providers/justworks-review/pricing/" target="_blank">Justworks Pricing Details</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Claim of no recoverable minimum-headcount data is contradicted by C046/help.justworks.com stating a 2 W-2 employee minimum.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C044</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks operates a standalone Payroll product priced separately from its PEO product — reported at roughly $8 per employee/month plus a $50 monthly base fee — distinct from the PEO co-employment bundle.</div>
+<blockquote>&ldquo;Justworks lists Payroll at $8 per employee per month plus a $50 monthly base fee.&rdquo;</blockquote>
+<div class="src"><a href="https://elearningindustry.com/justworks-pricing" target="_blank">Justworks Pricing Plans And Costs 2026</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Standalone Payroll at $8/employee/mo plus $50 base fee confirmed across pricing sources; proxy grade caps at medium.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C045</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks PEO is sold as two tiers, Basic and Plus, with per-employee pricing reported around $79-99 (Basic) and $99-109 (Plus) depending on source, with some sources describing volume-tiered pricing that decreases at 25-99 vs 100+ employees.</div>
+<blockquote>&ldquo;PEO Basic is at $79 per employee per month, and PEO Plus at $109 per employee per month.&rdquo;</blockquote>
+<div class="src"><a href="https://elearningindustry.com/justworks-pricing" target="_blank">Justworks Pricing Plans And Costs 2026</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Basic $79 / Plus $109 and volume-tiered decreases at 25-99 vs 100+ confirmed across multiple sources; ranges vary by tier.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C068</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">hook: transparent, publicly-listed per-employee pricing as a category differentiator | persona: small/growing-business owner comparison-shopping PEOs | pain: PEO pricing opacity requiring sales calls | offer: self-serve pricing page (no gated demo required to see cost) | funnel: comparison | proof: none/stated | format: static (pricing page) | started: unknown | longevity: long-running (persistent site differentiator, not a single campaign).</div>
+<blockquote>&ldquo;Justworks is one of the few PEOs that publicly lists its pricing online... While TriNet and ADP TotalSource hide pricing behind sales calls, Justworks publishes clear per-employee rates.&rdquo;</blockquote>
+<div class="src"><a href="https://www.hireinsouth.com/post/justworks-pricing" target="_blank">What Does Justworks Really Cost in 2026? — South</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Public per-employee pricing page confirmed to exist; transparent-pricing differentiator corroborated across sources.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C069</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks publicly lists tiered per-employee pricing: Payroll at $8/employee/month plus a $50 monthly base fee, PEO Basic at $79/employee/month, and PEO Plus at $109/employee/month.</div>
+<blockquote>&ldquo;Justworks currently lists Payroll at $8 per employee per month plus a $50 monthly base fee, PEO Basic at $79 per employee per month, and PEO Plus at $109 per employee per month.&rdquo;</blockquote>
+<div class="src"><a href="https://www.performancereviewssoftware.com/software/justworks-review/" target="_blank">Justworks Review &amp; Pricing 2026</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Payroll $8+$50 base and PEO Plus $109 corroborate, but PEO Basic is disputed — multiple sources list $59, not the claimed $79.</div>
+</div></section><section><h2>ads <span class="count">6</span></h2><div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C059</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks launched a new national brand ad campaign, &#x27;You Don&#x27;t Have To Worry When It Justworks,&#x27; in July 2026, created with agencies Noble People and Quality Meats and directed by Freddie Powell.</div>
+<blockquote>&ldquo;The &quot;You Don&#x27;t Have To Worry When It Justworks&quot; campaign was published in the United States in July 2026. It was created for Justworks by ad agencies Noble People and Quality Meats.&rdquo;</blockquote>
+<div class="src"><a href="https://www.adsoftheworld.com/campaigns/you-don-t-have-to-worry-when-it-justworks" target="_blank">Justworks: You Don&#x27;t Have To Worry When It Justworks — Ads of the World</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Re-verified: campaign, July 2026 US launch, Noble People (media) + Quality Meats (creative), Freddie Powell director all corroborated.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C061</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">The July 2026 campaign runs across a wide paid+earned media mix: connected TV, online video, out-of-home, podcasts, digital publishers, newsletters, LinkedIn, and creator partnerships — indicating a multi-channel, brand-tier (not just performance-search) budget.</div>
+<blockquote>&ldquo;The campaign reaches founders and small business leaders across connected TV, online video, out-of-home, podcasts, digital publishers, newsletters, LinkedIn, and creator partnerships.&rdquo;</blockquote>
+<div class="src"><a href="https://www.adsoftheworld.com/campaigns/you-don-t-have-to-worry-when-it-justworks" target="_blank">Justworks: You Don&#x27;t Have To Worry When It Justworks — Ads of the World</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Media mix (CTV, online video, OOH, podcasts, publishers, newsletters, LinkedIn, creators) matches search corroboration exactly.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C062</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks pairs the brand campaign with experiential/sponsorship activations (WNBA All-Star, Fast Company Innovation Festival, TCS New York City Marathon) plus customer stories and executive thought leadership, signaling a brand-building push beyond direct-response ads.</div>
+<blockquote>&ldquo;The campaign also extends beyond advertising with customer stories, executive thought leadership, and activations around WNBA All-Star, Fast Company Innovation Festival, and the TCS New York City Marathon.&rdquo;</blockquote>
+<div class="src"><a href="https://lbbonline.com/news/Justworks-Small-Business-Quality-Meats" target="_blank">Justworks&#x27; Spotlights Emotional Journey of Running a Small Business — LBBOnline</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> WNBA All-Star, Fast Company Innovation Festival, TCS NYC Marathon activations plus thought leadership corroborated.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C064</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Among Justworks&#x27; top paid-traffic keywords, &#x27;trinet&#x27; appears with a 7.29% share — indicating Justworks bids on its PEO competitor&#x27;s brand name for conquesting/comparison intent.</div>
+<blockquote>&ldquo;&quot;trinet&quot; ($7.29 share)&rdquo;</blockquote>
+<div class="src"><a href="https://www.similarweb.com/website/justworks.com/" target="_blank">Justworks.com Traffic Overview — Similarweb</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Trinet paid-keyword conquesting is plausible via SimilarWeb; exact 7.29% share not re-verified and volatile.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C065</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks maintains an active, funded performance-marketing hiring pipeline: a NYC-based Performance Marketing Analyst role (targeted $109,000–$119,900/yr) explicitly covers Search, Paid Social, Display, and Affiliate channel analytics and forecasting.</div>
+<blockquote>&ldquo;you&#x27;ll be the analytical powerhouse behind their paid media efforts, helping to maximize ROI and drive business growth... across multiple digital marketing channels including Search, Paid Social, Display, Affiliate, and more. The base wage range for this position based in their New York City Office is targeted at $109,000 to $119,900 per year.&rdquo;</blockquote>
+<div class="src"><a href="https://job-boards.greenhouse.io/justworks/jobs/6711827" target="_blank">Performance Marketing Analyst — Justworks (Greenhouse)</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Quote supports the role, channels, and $109k–$119.9k range; Greenhouse posting not re-fetched.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C067</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">No Justworks creative was found in the TikTok Commercial Content Library search, suggesting Justworks has not judged TikTok a productive channel for its PEO/HR-buyer ICP.</div>
+
+<div class="src"><a href="https://library.tiktok.com/ads?region=US&amp;query=Justworks" target="_blank">TikTok Commercial Content Library search — Justworks (no results)</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Absence-of-evidence inference from empty result; &#x27;not judged productive&#x27; is speculative.</div>
+</div></section><section><h2>social <span class="count">5</span></h2><div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C039</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks CEO Michael Seckler maintains an active founder-led LinkedIn/thought-leadership and podcast presence, framing himself around small-business advocacy and startup-to-scale-up leadership lessons.</div>
+<blockquote>&ldquo;From Startup to Grown-up: Mike Seckler, CEO of Justworks — how to run a great board process, how to avoid self-inflicted wounds, and the value of taking big risks early in your career&rdquo;</blockquote>
+<div class="src"><a href="https://podcasts.apple.com/us/podcast/91-from-startup-to-grown-up-mike-seckler-ceo-of/id1576751076?i=1000706490593" target="_blank">Justworks CEO Mike Seckler podcast appearance</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Seckler is Justworks CEO and the podcast title supports the appearance; &#x27;active LinkedIn/thought-leadership&#x27; broader than the quote carries.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C040</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks Founder and Executive Chair Isaac Oates has publicly shared an internal culture document, &#x27;I Am A Justworks Leader,&#x27; articulating behavioral norms including vulnerability and shared humanity.</div>
+<blockquote>&ldquo;creating a document called &quot;I Am A Justworks Leader&quot; that covers behavioral norms like &quot;I am vulnerable,&quot; &quot;I share my humanity,&quot; and &quot;I meet my commitments&quot;&rdquo;</blockquote>
+<div class="src"><a href="https://www.primary.vc/firstedition/posts/distribution-product-market-fit-advice-from-justworks/" target="_blank">If You Don&#x27;t Have Distribution, You Don&#x27;t Have Product-Market Fit — Primary VC on Justworks&#x27; Isaac Oates</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Oates as Founder/Exec Chair and the leadership-document quote are consistent; single VC-blog source, not re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C041</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Justworks&#x27; LinkedIn company page (linkedin.com/company/justworks/) could not be measured directly — guest-view fetch returned no follower count, no visible posts, and no about text, indicating either strong view-gating or a sparse/inactive guest-visible feed.</div>
+
+<div class="src"><a href="https://www.linkedin.com/company/justworks/" target="_blank">Justworks LinkedIn company page (fetch attempt)</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Honest inferred non-measurement of a gated LinkedIn page; no evidentiary claim to refute.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C042</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Justworks&#x27; YouTube channel (@justworks) could not be measured directly — fetch returned only generic page footer/nav with no subscriber count, video list, or view data, so cadence and produced-vs-founder-video mix are unverified this run.</div>
+
+<div class="src"><a href="https://www.youtube.com/@justworks" target="_blank">Justworks YouTube channel (fetch attempt)</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Honest inferred non-measurement of YouTube channel; no evidentiary claim to refute.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C066</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks also runs an active Social Media Marketing Manager req (NYC, $121K–$151K) tasked with LinkedIn, Instagram, and X content strategy — confirming those three platforms as active organic/paid-adjacent social channels.</div>
+<blockquote>&ldquo;developing and executing a robust social media strategy... for platforms like LinkedIn, Instagram, X, and more.&rdquo;</blockquote>
+<div class="src"><a href="https://www.builtinnyc.com/job/social-media-marketing-manager/9619185" target="_blank">Social Media Marketing Manager — Justworks | Built In NYC</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Quote supports LinkedIn/Instagram/X strategy; the $121K–$151K salary is not in the quote but plausible.</div>
+</div></section><section><h2>news <span class="count">7</span></h2><div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C002</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks&#x27; international EOR push traces to its 2023 acquisition of Via, which catalyzed the global expansion strategy.</div>
+<blockquote>&ldquo;Justworks grew its international EOR offering only after the 2023 acquisition of Via.&rdquo;</blockquote>
+<div class="src"><a href="https://employborderless.com/review/justworks/" target="_blank">Justworks EOR review 2026: pricing, features &amp; pros/cons</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Via acquisition (completed Sept 2023) is confirmed; the &#x27;catalyzed global expansion&#x27; causation is a reasonable but single-source inference.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C004</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks cut approximately 200 employees in February 2025, with CEO Mike Seckler framing it as a focus/speed/growth reset rather than distress.</div>
+<blockquote>&ldquo;Because my most fundamental task as CEO is to ensure that Justworks remains strong for the small businesses who depend on us, I decided to reduce headcount and rethink the way we are operating to increase focus, speed, and growth.&rdquo;</blockquote>
+<div class="src"><a href="https://www.glassdoor.com/Reviews/Employee-Review-Justworks-E915954-RVW95135081.htm" target="_blank">Justworks - Was part of 200 Employee Layoff in Feb 2025 | Glassdoor</a>
+ · observed 2025-02-01 · lane: news</div>
+<div class="vnote"><b>verifier:</b> ~200 layoffs (~15%) announced Feb 10 2025 by Seckler confirmed across multiple outlets; focus/speed/growth framing matches his public note.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C005</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks shelved a planned 2022 U.S. IPO, citing &#x27;market conditions,&#x27; after having targeted selling 7 million shares at $29-$32.</div>
+<blockquote>&ldquo;Unicorn exits augur poorly as Justworks delays IPO, citing &#x27;market conditions&#x27;&rdquo;</blockquote>
+<div class="src"><a href="https://techcrunch.com/2022/01/12/unicorn-exits-augur-poorly-as-justworks-delays-ipo-citing-market-conditions/" target="_blank">TechCrunch: Justworks delays IPO citing market conditions</a>
+ · observed 2022-01-12 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Bloomberg/StreetInsider confirm Jan 2022 IPO delay citing market conditions, 7M shares at $29–$32.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C006</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">As of 2025, Justworks had no active plans to go public, with CEO Mike Seckler stating the company had grown revenue 2.5x since 2022.</div>
+<blockquote>&ldquo;Justworks has no plans to go public in 2025 after shelving its 2022 IPO, and CEO Mike Seckler said the company has grown revenue 2.5x since 2022.&rdquo;</blockquote>
+<div class="src"><a href="https://getlatka.com/companies/justworks" target="_blank">Justworks Revenue, Valuation &amp; Funding History</a>
+ · observed 2025-01-01 · lane: news</div>
+<div class="vnote"><b>verifier:</b> &#x27;No plans to go public&#x27; corroborated by Fortune/Yahoo coverage; 2.5x-since-2022 revenue figure rests on single getlatka source, unverified.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C007</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks has raised $148M in total funding across 7 rounds, with its most recent round ($50M) closing January 28, 2020 — no new equity round has been reported since, despite a reported $1.4B valuation in 2025.</div>
+<blockquote>&ldquo;Justworks has raised a total funding of $148M over 7 rounds from 15 investors. Their latest funding round was of $50M on Jan 28, 2020.&rdquo;</blockquote>
+<div class="src"><a href="https://tracxn.com/d/companies/justworks/__EkAPbxiKFSJzK1Sx05GlngNs1b7Lm8g2DelAUR2Nc5o/funding-and-investors" target="_blank">Justworks - Funding Rounds &amp; List of Investors - Tracxn</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Tracxn&#x27;s $148M/7 rounds/$50M Jan-2020 and $1.4B 2025 valuation confirmed; note PitchBook cites $163M, so total varies by source.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C008</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Justworks reported ~$412M revenue and processed $18.2B in payroll across roughly 50,000 employer customers in 2025, with international expansion into 30+ countries cited as a driver of 20% YoY growth.</div>
+<blockquote>&ldquo;In 2025, Justworks served approximately 50,000 employers, processed $18.2 billion in payroll, and reported $412 million in revenue. International expansion into 30+ countries supported 20% year-over-year growth in 2025.&rdquo;</blockquote>
+<div class="src"><a href="https://builtin.com/company/justworks/faq/stability-growth" target="_blank">Justworks Company Growth, Stability &amp; Outlook 2026 | Built In</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Revenue/payroll/customer figures come solely from an auto-generated BuiltIn FAQ; not independently corroborated and should not be led with.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C010</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Justworks&#x27; headcount grew to 1,622 employees by June 30, 2026, up from 1,446 in 2025, indicating rehiring/growth resumed after the Feb 2025 layoffs.</div>
+<blockquote>&ldquo;As of June 30, 2026, Justworks had 1,622 employees, with 1,446 employees as of 2025.&rdquo;</blockquote>
+<div class="src"><a href="https://builtin.com/company/justworks/faq/stability-growth" target="_blank">Justworks Company Growth, Stability &amp; Outlook 2026 | Built In</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Precise 1,622 vs 1,446 headcounts from BuiltIn FAQ only; unverified and the growth-resumed conclusion is inferred.</div>
+</div></section><section><h2>customers <span class="count">12</span></h2><div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C029</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks holds a 4.6/5 rating on G2 from over 1,100 verified reviews.</div>
+<blockquote>&ldquo;Justworks holds a 4.6/5 rating from over 1,100 verified business users.&rdquo;</blockquote>
+<div class="src"><a href="https://www.g2.com/products/justworks/reviews" target="_blank">Justworks Reviews 2026 | G2</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> G2 shows 4.6/5 across ~1,120+ reviews; re-verified, but proxy source caps at medium.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C030</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks&#x27; G2 support-quality subscore is 9.2/10, sharply diverging from its 1.7/5 Trustpilot rating — indicating a split between routine-query experience and escalation handling.</div>
+<blockquote>&ldquo;the gap between Justworks&#x27; 9.2/10 support rating on G2 and its 1.7/5 rating on Trustpilot reveals a &quot;support cliff,&quot; where routine queries get handled quickly but escalations fall into a void&rdquo;</blockquote>
+<div class="src"><a href="https://www.g2.com/products/justworks/reviews" target="_blank">Justworks G2 vs Trustpilot support rating gap analysis</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Trustpilot 1.7 and G2 4.6 both confirmed, but 9.2 support subscore and &#x27;support cliff&#x27; are analyst synthesis wrongly attributed to the G2 URL.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C031</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">A Justworks customer reported the company failed to run payroll on July 3 2025 and was unreachable for support until July 7.</div>
+<blockquote>&ldquo;when Justworks neglected to pay their team on 7/3, no one could be found until 7/7&rdquo;</blockquote>
+<div class="src"><a href="https://www.trustpilot.com/review/justworks.com" target="_blank">Justworks Trustpilot review summary</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Payroll-failure and unresponsiveness complaints corroborated on Trustpilot; exact 7/3–7/7 dates not independently re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C032</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">A Justworks customer reported waiting roughly a month for a support response in February 2026 despite being told to expect a reply within a day or two.</div>
+<blockquote>&ldquo;waiting a month for a response to an issue as of February 2026, despite being told they would hear back in a day or two&rdquo;</blockquote>
+<div class="src"><a href="https://www.trustpilot.com/review/justworks.com" target="_blank">Justworks Trustpilot review summary</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Month-long response waits despite 1-day SLA corroborated by Trustpilot review pattern; single-review specifics unverified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C033</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Recurring Justworks complaint pattern: unresponsiveness during support escalations, limited platform customization, industry-eligibility restrictions, mobile app limitations, and unproven international/EOR services.</div>
+<blockquote>&ldquo;User complaints cluster around five operational failures: support unresponsiveness during escalations, limited customization, industry eligibility restrictions, mobile app limitations, and unproven international services.&rdquo;</blockquote>
+<div class="src"><a href="https://employborderless.com/review/justworks/" target="_blank">Justworks EOR review 2026</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Five-cluster complaint synthesis is internally consistent with observed review themes; single-source proxy.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C034</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Some Justworks customers report slow document handling: incorrect/incomplete W-2 forms and difficulty retrieving historical employee documents after offboarding from the platform.</div>
+<blockquote>&ldquo;slow customer support (7-10 weeks to resolve issues) and failure to provide correct documentation like full W2 forms... difficulty retrieving historical employee documents after transitioning off the platform&rdquo;</blockquote>
+<div class="src"><a href="https://www.capterra.com/p/223913/Justworks/reviews" target="_blank">Justworks Reviews | Capterra</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> W-2 accuracy and document-retrieval complaints consistent with Capterra review body; not individually re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C035</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Positive buyer sentiment centers on ease of use, with one reviewer scoring Justworks&#x27; ease-of-use at 9.9/10 and describing the interface as intuitive and easy to implement.</div>
+<blockquote>&ldquo;One reviewer awarded its platform an &quot;Ease of use&quot; score of 9.9 out of 10.&rdquo;</blockquote>
+<div class="src"><a href="https://www.trustradius.com/products/justworks/reviews" target="_blank">Justworks Reviews &amp; Ratings 2026 | TrustRadius</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Single-reviewer 9.9/10 ease-of-use score is anecdotal; cherry-picked data point, not representative measure.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C036</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Transparent, published per-rate pricing (vs. competitors&#x27; custom-quote model) is a recurring praise theme in Justworks reviews.</div>
+<blockquote>&ldquo;unlike competitors who often hide costs behind custom quotes, Justworks publishes its rates directly on its website&rdquo;</blockquote>
+<div class="src"><a href="https://checkthat.ai/brands/justworks/reviews" target="_blank">Justworks Reviews 2026: What Users Really Think</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Justworks does publish rates publicly (verified); the &#x27;recurring praise theme&#x27; framing is proxy synthesis.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C037</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">A buyer reported switching to Justworks from Paycor after evaluating it for benefits, and was impressed by the service and software.</div>
+<blockquote>&ldquo;One user switched from Paycor after looking at Justworks as a benefits option and were impressed by the service and software offerings.&rdquo;</blockquote>
+<div class="src"><a href="https://www.capterra.com/p/223913/Justworks/reviews/" target="_blank">Justworks Reviews | Capterra</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Single anecdotal Paycor-switch review; not load-bearing and not re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C055</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Justworks&#x27; customer proof pattern includes named-client case studies built around benefits-cost-savings outcomes for agency/services businesses (e.g., a design agency, CASE, citing clients like Estee Lauder, Pepsi, Herman Miller, J&amp;J, and reporting ~30% savings on Aetna health plans after joining Justworks).</div>
+<blockquote>&ldquo;By joining Justworks, CASE was able to offer four Aetna plans to their employees while saving almost 30%.&rdquo;</blockquote>
+<div class="src"><a href="https://www.justworks.com/our-customers/case-agency" target="_blank">Case Agency - Justworks</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Quote supports the ~30% Aetna savings only; named clients (Estee Lauder, Pepsi, etc.) are not carried by the quote — mild overreach.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C056</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Review-aggregator FeaturedCustomers lists a 4.7/5 rating for Justworks alongside 72 case studies, indicating review-site score and case-study volume are part of Justworks&#x27; third-party proof pattern.</div>
+<blockquote>&ldquo;Justworks has a 4.7/5 star rating and offers 72 free case studies.&rdquo;</blockquote>
+<div class="src"><a href="https://www.featuredcustomers.com/vendor/justworks/case-studies" target="_blank">72 Justworks Case Studies, Success Stories, &amp; Customer Stories | FeaturedCustomers</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Quote directly supports 4.7/5 and 72 case studies; unverified aggregator figures.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C072</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks cites large-scale processing volume as a trust/credibility proof point in its market narrative: over $31 billion in payroll and $8.9 billion in total taxes processed in 2025.</div>
+<blockquote>&ldquo;Justworks processed over $31 billion in payroll in 2025... and $8.9 billion in total taxes.&rdquo;</blockquote>
+<div class="src"><a href="https://www.business.com/reviews/justworks/" target="_blank">Justworks PEO Review 2026: Pricing, Plans &amp; Features</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Re-verified: $31B payroll and $8.9B taxes processed in 2025 corroborated; self-asserted figures, so capped at medium.</div>
+</div></section><section><h2>other <span class="count">3</span></h2><div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C012</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">One market-sizing estimate places Justworks at roughly 12% share of the &#x27;tech-forward SMB PEO market&#x27; as of 2026.</div>
+<blockquote>&ldquo;As of 2026, Justworks commands roughly 12% of the tech-forward SMB PEO market, positioning it as a leading mid-market HR tech provider.&rdquo;</blockquote>
+<div class="src"><a href="https://builtin.com/company/justworks/faq/stability-growth" target="_blank">Justworks Company Growth, Stability &amp; Outlook 2026 | Built In</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> 12% &#x27;tech-forward SMB PEO&#x27; share is an undefined-market metric from a single auto-generated FAQ; effectively unverifiable.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C063</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Justworks.com&#x27;s traffic mix is 24.78% paid vs 75.22% organic, with direct traffic dominating overall referral share at 61.23%.</div>
+<blockquote>&ldquo;Organic: 75.22% / Paid: 24.78% ... Direct traffic dominates at 61.23%&rdquo;</blockquote>
+<div class="src"><a href="https://www.similarweb.com/website/justworks.com/" target="_blank">Justworks.com Traffic Overview — Similarweb</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> SimilarWeb is an estimate proxy (not truly &#x27;measured&#x27;); precise volatile figures not independently re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C073</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Justworks&#x27; official ad-library footprint could not be measured directly this pass (Meta, LinkedIn, Google, TikTok libraries all walled/empty/404), so paid-channel presence rests on hiring-req and press-coverage triangulation rather than verbatim creative capture — a coverage gap for a follow-up rendered-browser pull.</div>
+
+<div class="src"><a href="https://www.facebook.com/ads/library/?active_status=active&amp;ad_type=all&amp;country=US&amp;q=Justworks&amp;search_type=keyword_unordered" target="_blank">Meta Ad Library — Justworks (fetch failed)</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Self-caveating coverage-gap note, not a factual claim about the competitor; internally consistent and appropriately hedged (inferred/low), no overreach to challenge.</div>
+</div></section>
+<section><h2>post-eval corrections <span class="count">1</span></h2><p class="note">The eval harness catching things is the audit trail of it working.</p><ul class="corr"><li>C015, C017, C024, C025, C026, C027 re-graded proxy-&gt;inferred: they aggregated multiple search snippets with no single citable page (source_url was the placeholder &#x27;search_snippet_aggregate&#x27;); per protocol an aggregate read is an inference with its basis stated. Representative search URL substituted.</li></ul></section>
+<footer>Machine-readable twin: the claims JSON in the same folder. Grades — measured: read from a fetched page ·
+self-claimed: the competitor says so · proxy: third-party sourced · inferred: analyst read with basis stated.</footer>
+<script>
+document.getElementById('filters').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#filters button').forEach(x => x.classList.toggle('on', x === b));
+  const f = b.dataset.f;
+  document.querySelectorAll('.claim').forEach(c => {
+    let show = f === 'all'
+      || (f === 'v:flagged' && ['unsupported','contradicted'].includes(c.dataset.v))
+      || (f.startsWith('v:') && c.dataset.v === f.slice(2))
+      || (f.startsWith('e:') && c.dataset.e === f.slice(2));
+    c.classList.toggle('hidden', !show);
+  });
+  document.querySelectorAll('section').forEach(s => {
+    const any = s.querySelectorAll('.claim:not(.hidden)').length || !s.querySelector('.claim');
+    s.style.display = any ? '' : 'none';
+  });
+});
+</script>
+</body></html>

@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gusto — claims ledger</title>
+<style>
+  :root { --ink:#1f2328; --dim:#6a737d; --faint:#98a1ab; --line:#e6e8eb; --soft:#f6f7f8;
+          --ok:#0e7a55; --okbg:#e7f5ef; --warn:#8a5a00; --warnbg:#fdf3dc;
+          --bad:#b42318; --badbg:#fdecea; --blue:#0b6bcb; --bluebg:#e8f1fc; }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#e6e8eb; --dim:#9aa4b0; --faint:#6b7480; --line:#2a2f36; --soft:#171a1f;
+             --ok:#4cc596; --okbg:#0d2b20; --warn:#e2b93d; --warnbg:#2c2410;
+             --bad:#f08578; --badbg:#331512; --blue:#6cb0f5; --bluebg:#10233a; }
+    body { background:#0f1114; }
+  }
+  * { box-sizing:border-box; margin:0; }
+  body { font:15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+         color:var(--ink); max-width:860px; margin:0 auto; padding:48px 28px 90px; }
+  h1 { font-size:30px; letter-spacing:-.4px; }
+  .sub { color:var(--dim); margin-top:6px; }
+  .statbar { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 6px; }
+  .stat { border:1px solid var(--line); border-radius:999px; padding:5px 13px; font-size:12.5px; color:var(--dim); }
+  .stat b { color:var(--ink); }
+  .filters { position:sticky; top:0; background:inherit; backdrop-filter:blur(6px);
+             display:flex; flex-wrap:wrap; gap:6px; padding:14px 0; border-bottom:1px solid var(--line);
+             margin-bottom:10px; z-index:5; background-color:rgba(255,255,255,.85); }
+  @media (prefers-color-scheme: dark) { .filters { background-color:rgba(15,17,20,.85); } }
+  .filters button { border:1px solid var(--line); background:none; color:var(--dim); border-radius:999px;
+                    padding:5px 13px; font:inherit; font-size:12.5px; cursor:pointer; }
+  .filters button.on { background:var(--bluebg); color:var(--blue); border-color:var(--blue); }
+  section { margin-top:34px; }
+  h2 { font-size:19px; padding-bottom:8px; border-bottom:1px solid var(--line); margin-bottom:14px;
+       text-transform:capitalize; }
+  .count { color:var(--faint); font-weight:400; font-size:14px; }
+  .claim { border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:12px; }
+  .claim.hidden { display:none; }
+  .head { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:8px; }
+  .cid { font-family:ui-monospace, Menlo, monospace; font-size:12px; color:var(--blue);
+         background:var(--bluebg); border-radius:6px; padding:2px 8px; }
+  .pill { font-size:11.5px; border-radius:999px; padding:2px 10px; }
+  .p-ok { color:var(--ok); background:var(--okbg); }
+  .p-warn { color:var(--warn); background:var(--warnbg); }
+  .p-bad { color:var(--bad); background:var(--badbg); }
+  .p-dim { color:var(--dim); background:var(--soft); }
+  .text { font-size:15px; }
+  blockquote { margin:10px 0 8px; padding:8px 14px; border-left:3px solid var(--line);
+               color:var(--dim); font-style:italic; background:var(--soft); border-radius:0 8px 8px 0; }
+  .src { font-size:12.5px; color:var(--faint); }
+  .src a { color:var(--blue); text-decoration:none; }
+  .vnote { margin-top:8px; font-size:12.5px; color:var(--dim); background:var(--soft);
+           border-radius:8px; padding:7px 11px; }
+  .vnote b { font-weight:600; }
+  .note { color:var(--dim); font-size:13px; margin-bottom:10px; }
+  .corr { padding-left:20px; color:var(--dim); font-size:13.5px; }
+  .corr li { margin-bottom:8px; }
+  footer { margin-top:40px; color:var(--faint); font-size:12.5px; border-top:1px solid var(--line); padding-top:14px; }
+</style></head><body>
+<h1>Gusto — claims ledger</h1>
+<div class="sub">Every fact behind the brief, with its verbatim quote, source, and how hard it survived verification.
+Generated 2026-07-30 · model claude-opus-4-8</div>
+<div class="statbar">
+  <span class="stat"><b>55</b> claims</span>
+  <span class="stat"><b>16</b> confirmed</span>
+  <span class="stat"><b>38</b> plausible</span>
+  <span class="stat"><b>1</b> flagged</span>
+  <span class="stat"><b>12</b> measured · <b>31</b> proxy ·
+      <b>6</b> self-claimed · <b>6</b> inferred</span>
+</div>
+<div class="filters" id="filters">
+  <button class="on" data-f="all">all</button>
+  <button data-f="v:confirmed">confirmed</button>
+  <button data-f="v:plausible">plausible</button>
+  <button data-f="v:flagged">flagged</button>
+  <button data-f="e:measured">measured</button>
+  <button data-f="e:proxy">proxy</button>
+  <button data-f="e:stated_by_competitor">self-claimed</button>
+  <button data-f="e:inferred">inferred</button>
+</div>
+<section><h2>messaging <span class="count">6</span></h2><div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C029</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Gusto&#x27;s LinkedIn About section positions the company with the tagline &#x27;On a mission to grow the small business economy with technology and heart. Trusted by 500K+ businesses.&#x27;</div>
+<blockquote>&ldquo;On a mission to grow the small business economy with technology and heart. Trusted by 500K+ businesses.&rdquo;</blockquote>
+<div class="src"><a href="https://www.linkedin.com/company/gustohq" target="_blank">Gusto | LinkedIn</a>
+ · observed 2026-07-29 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Tagline matches Gusto&#x27;s known mission language; 500K+ businesses aligns with CEO&#x27;s stated 500K customers.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C034</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto CEO Josh Reeves appeared on CNBC&#x27;s &#x27;Fortt Knox&#x27; in May 2026 discussing crossing 500,000 customers and $1B in trailing revenue, framing AI as letting one-person companies &#x27;do more than ever&#x27; — part of an active founder press/podcast circuit (SaaStr, Logan Bartlett Show, A Product Market Fit Show).</div>
+<blockquote>&ldquo;Josh Reeves, Gusto CEO: A Fortt Knox Update&rdquo;</blockquote>
+<div class="src"><a href="https://www.cnbc.com/video/2026/05/11/josh-reeves-gusto-ceo-a-fortt-knox-update.html" target="_blank">Josh Reeves, Gusto CEO: A Fortt Knox Update</a>
+ · observed 2026-07-29 · lane: social</div>
+<div class="vnote"><b>verifier:</b> CNBC video 403&#x27;d on fetch; Reeves is CEO and 500K customers matches other claims, but $1B revenue quote unconfirmed.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C042</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto publishes SMB-education resource content on its own site (e.g., a &#x27;Should I Use TikTok for My Business?&#x27; article) aimed at small-business owners deciding on social platform strategy, consistent with a category-education content pillar separate from product marketing.</div>
+<blockquote>&ldquo;Should I Use TikTok for My Business? The Pros, Cons, and 3 Questions to Consider&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/resources/articles/business-growth/tiktok-for-my-business" target="_blank">Gusto resource article</a>
+ · observed 2026-07-29 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Quote matches a real gusto.com resources article; self-published, so caps at medium.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C044</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Multiple Gusto TV spot titles indicate a recurring overwhelm/time-savings angle aimed at owner-operators doing their own payroll admin, paired with a price-anchor hook spot literally titled around a dollar figure.</div>
+<blockquote>&ldquo;Gusto TV Spot, &#x27;Too Much on Your Plate?&#x27; ... Gusto TV Spot, &#x27;Time Is Money&#x27; ... Gusto TV Spot, &#x27;Business Payroll: $55&#x27;&rdquo;</blockquote>
+<div class="src"><a href="https://www.ispot.tv/brands/f2T/gusto" target="_blank">Gusto TV Commercials - iSpot</a>
+ · observed 2026-07-29 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Titles (&#x27;Too Much on Your Plate?&#x27;,&#x27;Time Is Money&#x27;,&#x27;Business Payroll: $55&#x27;) exist; the overwhelm/price-anchor read is a reasonable interpretation, not measured.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C052</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Gusto maintains an active lifecycle/onboarding email program, evidenced by a cataloged &#x27;Welcome to Gusto – Start here&#x27; onboarding email on Really Good Emails.</div>
+<blockquote>&ldquo;Welcome to Gusto – Start here from Gusto - Desktop Email View | Really Good Emails&rdquo;</blockquote>
+<div class="src"><a href="https://reallygoodemails.com/emails/welcome-to-gusto-start-here" target="_blank">Welcome to Gusto – Start here | Really Good Emails</a>
+ · observed 2026-07-29 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> A cataloged welcome email on Really Good Emails is plausible evidence of a lifecycle program; single artifact.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C056</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto&#x27;s homepage meta-title frames the company as broad HR/payroll, not narrow payroll: &#x27;Gusto | Online HR Services: Payroll, Benefits and everything else&#x27;.</div>
+<blockquote>&ldquo;Gusto | Online HR Services: Payroll, Benefits and everything else&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/" target="_blank">Gusto homepage (search snippet)</a>
+ · observed 2026-07-29 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Homepage meta-title/positioning quote is plausible and consistent with Gusto&#x27;s broad HR framing; not re-fetched.</div>
+</div></section><section><h2>positioning <span class="count">11</span></h2><div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C040</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Buyer-side comparison content (e.g., a Homebase &#x27;Gusto alternatives&#x27; roundup) surfaces recurring switching complaints: scheduling is gated to higher-tier plans or sold as a paid add-on, per-employee pricing is unpredictable for hourly businesses with fluctuating headcount, and PTO accrual/requests are split across separate tools (no verbatim quote captured; analyst read of the fetched page).</div>
+
+<div class="src"><a href="https://www.joinhomebase.com/blog/gusto-alternatives" target="_blank">9 Gusto alternatives for 2023</a>
+ · observed 2026-07-29 · lane: social</div>
+<div class="vnote"><b>verifier:</b> No quote supplied to test; a Homebase &#x27;Gusto alternatives&#x27; roundup surfacing these gripes is plausible but unverified this pass.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C041</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Bookkeeping/accountant community commentary frames Gusto as an accountant-channel favorite (&#x27;The Bookkeeper&#x27;s Preferred solution for Small Businesses&#x27;), citing cost-effectiveness, support quality, and integrations, with some firms pursuing Gusto payroll certifications — a narrative distinct from the SMB-owner-facing brand content on LinkedIn/X.</div>
+<blockquote>&ldquo;The Bookkeeper&#x27;s Preferred solution for Small Businesses&rdquo;</blockquote>
+<div class="src"><a href="https://bookkeepingsidehustle.substack.com/p/the-one-where-i-get-certified/comments" target="_blank">Bookkeeping Side Hustle Substack</a>
+ · observed 2026-07-29 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Quote is a community/substack aside; supports the accountant-favorite framing but is a single low-authority source.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C057</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto maintains structurally separate product pages segmented by company size (gusto.com/product/solutions/size and .../size/small-business) and by vertical (gusto.com/product/solutions/industry), indicating deliberate size- and industry-based GTM segmentation.</div>
+<blockquote>&ldquo;Payroll Solutions by Industry | Gusto; Payroll Software for Small Business | Gusto; Payroll and HR solutions by business size | Gusto&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/product/solutions/size" target="_blank">Gusto solutions-by-size/industry pages (search result titles)</a>
+ · observed 2026-07-29 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Size/industry-segmented product URLs are plausible; supports GTM segmentation read.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C060</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto&#x27;s accountant channel is a formal, tiered program (Silver/Gold/Platinum) offering revenue share, a dedicated advisor, and free Gusto Plus for the accounting firm&#x27;s own payroll once it onboards at least one client per year — a structured reseller/referral engine, not an informal channel.</div>
+<blockquote>&ldquo;The partner program is tiered (Silver, Gold, and Platinum)... your own firm gets free Gusto Plus payroll and HR tools, when you onboard at least one client per year to Gusto&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/partners/accountants" target="_blank">Become a Gusto Partner and Grow Your Accounting Firm</a>
+ · observed 2026-07-29 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Silver/Gold/Platinum tiering and free Gusto Plus for the firm re-verified; note C048&#x27;s &#x27;Bronze/Silver/Gold&#x27; prose differs from actual tier names.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C061</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto&#x27;s accountant program claims partners save &#x27;200 hours saved per year on payroll, tax, and compliance&#x27; as its core value proposition to the channel.</div>
+<blockquote>&ldquo;200 hours saved per year on payroll, tax, and compliance&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/partner-resources/gusto-for-partners-program" target="_blank">Gusto for Partners Program Overview</a>
+ · observed 2026-07-29 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> &#x27;200 hours saved&#x27; is a self-stated Gusto marketing figure; plausible, not independently validated.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C063</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto&#x27;s installed base skews heavily SMB versus Rippling&#x27;s: 88% of Gusto&#x27;s G2 reviewers self-identify as small business vs. 43% for Rippling, confirming Gusto&#x27;s core segment is sub-50-employee companies while Rippling pulls more mid-market (51-1000 employees).</div>
+<blockquote>&ldquo;88% of Gusto reviewers on G2 are SMBs to only 43% for Rippling&rdquo;</blockquote>
+<div class="src"><a href="https://www.techrepublic.com/article/rippling-vs-gusto/" target="_blank">Rippling vs. Gusto: Payroll Software Comparison</a>
+ · observed 2026-07-29 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> TechRepublic 88%-vs-43% SMB-mix figure is a plausible third-party proxy; not re-verified against live G2 filters.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C066</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">AEO check for &#x27;Gusto vs Rippling&#x27;: the answer surface is owned by Rippling&#x27;s own comparison page and neutral third-party outlets (TechRepublic), not by any Gusto-authored comparison page — an open opening Gusto appears to cede to the competitor it&#x27;s most often benchmarked against.</div>
+<blockquote>&ldquo;See how Rippling compares to Gusto | Rippling; Rippling vs. Gusto: Payroll Software Comparison&rdquo;</blockquote>
+<div class="src"><a href="https://www.rippling.com/compare/rippling-vs-gusto" target="_blank">Search: &quot;Gusto&quot; vs Rippling</a>
+ · observed 2026-07-29 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> AEO SERP snapshot not independently re-run; note Gusto does author some compare pages (e.g. gusto-vs-adp), so &#x27;cedes to Rippling&#x27; is specific to this query, unverified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C067</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">AEO check for &#x27;Gusto alternatives 2026&#x27;: every top-ranking result is third-party (G2, Netchex, RemotePeople, Wisemonk, PeopleManagingPeople, Bolto, Paylocity) — no gusto.com-authored page contests this query, a fully open opening on a high-intent bottom-funnel comparison surface.</div>
+<blockquote>&ldquo;Top 10 Gusto Alternatives &amp; Competitors in 2026 | G2; 5 Best Gusto Alternatives for Growing Businesses in 2026&rdquo;</blockquote>
+<div class="src"><a href="https://www.g2.com/products/gusto/competitors/alternatives" target="_blank">Search: Gusto alternatives 2026</a>
+ · observed 2026-07-29 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> My search corroborates third-party dominance (G2, Netchex, RemotePeople) with no gusto.com alternatives page contesting the query; AEO snapshot not exhaustively re-verified.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C068</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto itself publishes offense-style comparison content naming ADP as the legacy incumbent it positions against, hosted at gusto.com/resources/guides/adp-competitors (&#x27;8 Best ADP Competitors &amp; Alternatives&#x27;) — direct page content unreachable (403) but existence/title confirmed via search index.</div>
+<blockquote>&ldquo;8 Best ADP Competitors &amp; Alternatives in 2026&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/resources/guides/adp-competitors" target="_blank">Gusto ADP-competitors guide (search result title)</a>
+ · observed 2026-07-29 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Search index confirms gusto.com/resources/guides/adp-competitors titled &#x27;8 Best ADP Competitors &amp; Alternatives in 2026&#x27;; direct fetch still 403 so title-only confirmation, medium.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C069</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Third-party switching-reasons content (published by a Gusto-alternatives blog, so directionally biased) claims users leave Gusto because &#x27;global payroll is limited to just 10 countries&#x27; and &#x27;the platform struggles to scale past 100 employees&#x27; — consistent with an SMB-capped positioning ceiling.</div>
+<blockquote>&ldquo;global payroll is limited to just 10 countries, customer support wait times have gotten worse, and the platform struggles to scale past 100 employees&rdquo;</blockquote>
+<div class="src"><a href="https://www.wisemonk.io/blogs/gusto-alternatives" target="_blank">10 Best Gusto Alternatives 2026 for US Small Business</a>
+ · observed 2026-07-29 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Exact wisemonk wording not re-surfaced, but corroborating third-party content (Gusto Global ~12 countries, HR ceiling at 100-150 employees) is directionally consistent; source is biased, kept low.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C070</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Across all reachable evidence this run (SMB-skewed G2 review base, per-employee self-service pricing signals referenced in third-party comparisons, no enterprise/contact-sales gate surfaced in any snippet, and a self-serve &#x27;free to sign up&#x27; Gusto Pro accountant portal), Gusto&#x27;s GTM reads as self-serve-led for its core SMB motion with the accountant/bookkeeper channel formalized as a distinct, incentivized secondary acquisition engine — this is an analytical read, not a direct on-page confirmation, since pricing/homepage pages could not be fetched directly this run.</div>
+
+<div class="src"><a href="https://gusto.com/partners/accountants" target="_blank">Inferred from aggregated search evidence (direct fetch blocked)</a>
+ · observed 2026-07-29 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Analytical GTM read, internally consistent (self-serve SMB motion + formalized accountant channel), but inferred with no on-page pricing/homepage fetch this run — caps at medium.</div>
+</div></section><section><h2>product <span class="count">4</span></h2><div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C030</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Recent Gusto LinkedIn posts announce &#x27;Gusto Cofounder,&#x27; an AI product designed to automate recurring business tasks for small business owners, alongside feature updates (FICA tip tax credit, Karbon accounting integration, voluntary life/disability benefits).</div>
+<blockquote>&ldquo;Introduction of &quot;Gusto Cofounder,&quot; an AI product designed to automate recurring business tasks for small business owners&rdquo;</blockquote>
+<div class="src"><a href="https://www.linkedin.com/company/gustohq" target="_blank">Gusto | LinkedIn</a>
+ · observed 2026-07-29 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Gusto Cofounder AI and feature updates plausible; LinkedIn feed not independently reachable.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C058</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto runs a separate &#x27;Gusto Global&#x27; product line for international EOR/contractor payments, marketed with a G2-satisfaction claim, distinct from the core US payroll product.</div>
+<blockquote>&ldquo;Global Payroll Services for Remote Teams | Gusto #1 in Satisfaction Score&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/product/global" target="_blank">Gusto Global product page (search result title)</a>
+ · observed 2026-07-29 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Gusto Global page with a G2-satisfaction claim is plausible; self-stated proof.</div>
+</div>
+<div class="claim" data-v="contradicted" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C059</span>
+<span class="pill p-bad">contradicted</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Gusto&#x27;s EOR offering is not built in-house — it is powered by third party Remote and covers only seven countries (Australia, Brazil, Canada, India, Mexico, Philippines, UK), priced at $599/employee/month for non-US hires, positioning it as a thin bolt-on rather than a true global-employment product.</div>
+<blockquote>&ldquo;Add and pay non-US employees with Employer of Record (EOR) powered by Remote; available in Australia, Brazil, Canada, India, Mexico, Philippines, and the United Kingdom&rdquo;</blockquote>
+<div class="src"><a href="https://support.gusto.com/article/231027160926237/Add-and-pay-non-US-employees-with-Employer-of-Record-EOR-powered-by-Remote" target="_blank">Gusto Help Center - EOR powered by Remote</a>
+ · observed 2026-07-29 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Live data contradicts &#x27;only seven countries&#x27; (now includes Germany, Ireland, Netherlands, Portugal, Spain, ~9-12) and flat $599 (India/Philippines $399); the $599 figure also isn&#x27;t in the cited quote.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C065</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Since 2019 Gusto expanded beyond core payroll into an embedded payroll API, an employee wallet, and an earned-wage-access product, per third-party analysis — evidence of platform-breadth strategy toward embedded finance for employees rather than upmarket HRIS/IT convergence (contrast with Rippling&#x27;s device/IT management push).</div>
+<blockquote>&ldquo;launched an embedded payroll API, an employee wallet, and an earned wage access product&rdquo;</blockquote>
+<div class="src"><a href="https://sacra.com/p/gusto-vs-rippling-vs-deel-vs-check/" target="_blank">Gusto vs. Rippling vs. Deel vs. Check</a>
+ · observed 2026-07-29 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Sacra page confirms verbatim: &#x27;Since 2019, Gusto have launched an embedded payroll API, an employee wallet, and an earned wage access product&#x27;; proxy caps at medium.</div>
+</div></section><section><h2>pricing <span class="count">13</span></h2><div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C001</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto&#x27;s entry-level &#x27;Simple&#x27; plan is priced at $49/month base plus $6/employee/month, covering single-state payroll and basic employee self-service.</div>
+<blockquote>&ldquo;Base: $49/month
+Per-employee: $6/month
+&quot;Single-state payroll with automatic tax calculations&quot; and basic employee self-service portal&rdquo;</blockquote>
+<div class="src"><a href="https://www.workstream.us/blog/gusto-pricing" target="_blank">Gusto Pricing: How Much Does Gusto Really Cost in 2026</a>
+ · observed 2026-07-29 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> $49+$6 single-state Simple corroborated across rivermate, costbench, hireinsouth; proxy caps medium.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C002</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto&#x27;s mid-tier &#x27;Plus&#x27; plan is priced at $80/month base plus $12/employee/month and adds multi-state payroll and time tracking over Simple.</div>
+<blockquote>&ldquo;Base: $80/month
+Per-employee: $12/month
+Adds multi-state payroll capability and time tracking features&rdquo;</blockquote>
+<div class="src"><a href="https://www.workstream.us/blog/gusto-pricing" target="_blank">Gusto Pricing: How Much Does Gusto Really Cost in 2026</a>
+ · observed 2026-07-29 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> $80+$12 Plus with multi-state payroll and time tracking confirmed by multiple 2026 pricing sources.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C003</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto&#x27;s top disclosed tier &#x27;Premium&#x27; is priced at $180/month base plus $22/employee/month, gating certified HR experts, priority support, payroll migration help, and custom reports behind this highest public tier.</div>
+<blockquote>&ldquo;Base: $180/month
+Per-employee: $22/month
+Includes &quot;certified HR professionals, priority support, payroll migration, and custom reports&quot;&rdquo;</blockquote>
+<div class="src"><a href="https://www.workstream.us/blog/gusto-pricing" target="_blank">Gusto Pricing: How Much Does Gusto Really Cost in 2026</a>
+ · observed 2026-07-29 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> $180+$22 Premium confirmed; feature gating (HR advisory, dedicated CSM, priority support) matches sources.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="inferred">
+<div class="head"><span class="cid">C004</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto&#x27;s value metric layers a flat platform base fee plus a per-employee-per-month charge across all three main tiers, positioning it as an HR/payroll platform rather than a per-seat admin tool.</div>
+
+<div class="src"><a href="https://www.workstream.us/blog/gusto-pricing" target="_blank">Gusto Pricing: How Much Does Gusto Really Cost in 2026</a>
+ · observed 2026-07-29 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Flat base + per-employee/mo across all three tiers is accurate; inferred positioning caps medium.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C005</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto offers a separate &#x27;Contractor Only&#x27; plan at $35/month base plus $6/contractor/month for businesses with no W-2 employees, a distinct value metric/packaging path from its employee-based tiers.</div>
+<blockquote>&ldquo;Base: $35/month (limited-time $0 offer for first six months)
+Per-contractor: $6/month
+Available for businesses without W-2 employees&rdquo;</blockquote>
+<div class="src"><a href="https://www.workstream.us/blog/gusto-pricing" target="_blank">Gusto Pricing: How Much Does Gusto Really Cost in 2026</a>
+ · observed 2026-07-29 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Contractor-Only $35+$6 for no-W-2 businesses confirmed by gustopricing and others.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C006</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto is running a switching/acquisition promo on its Contractor Only plan: $0 base price for the first six months.</div>
+<blockquote>&ldquo;The plan is listed at $35/month plus $6 per contractor, with a limited-time $0 base price offer for the first six months.&rdquo;</blockquote>
+<div class="src"><a href="https://elearningindustry.com/gusto-payroll-pricing-plans-everything-you-need-to-know" target="_blank">search synthesis on Gusto contractor-only pricing</a>
+ · observed 2026-07-29 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> $0 base first-six-months contractor promo actively advertised across multiple current sources; upgraded from low.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C007</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Third-party trackers report Gusto raised its Simple plan base price from $40 to $49/month in March 2026, indicating a recent pricing increase on its entry tier.</div>
+<blockquote>&ldquo;Gusto raised its Simple plan pricing from $40 to $49 per month in March 2026&rdquo;</blockquote>
+<div class="src"><a href="https://www.payrolldetective.com/payroll-providers/gusto-pricing" target="_blank">search synthesis referencing PayrollDetective Gusto pricing tracker</a>
+ · observed 2026-07-29 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Simple $40→$49 effective March 1 2026 corroborated by both whichpayroll and payrolldetective; proxy caps medium.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C008</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto does not charge a monthly per-contractor fee for international/global contractor payments; instead it charges a service and FX fee per payment, covering 120+ countries — a different value metric from its domestic per-contractor/per-employee pricing.</div>
+<blockquote>&ldquo;When you pay global contractors, there is no monthly per-contractor fee. Gusto charges only a small service and foreign exchange fee for each payment... international contractor payments support 120+ countries&rdquo;</blockquote>
+<div class="src"><a href="https://whichpayroll.com/reviews/gusto" target="_blank">search synthesis, Gusto Review 2026: US Payroll Strong, International EOR Limited</a>
+ · observed 2026-07-29 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Gusto GCP page confirms 120+ countries, no monthly per-contractor fee, only service+FX fee per payment.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C009</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto&#x27;s benefits brokerage (health, dental, vision, FSA, HSA, 401(k)) is administered with no separate admin fee bundled into plan pricing, but the underlying insurance/401(k) premiums are billed separately and vary by location and plan — a hidden/variable cost outside the headline per-employee price.</div>
+<blockquote>&ldquo;Benefits brokerage covers health, dental, vision, FSA, HSA, and 401(k) at no separate admin fee... premiums are billed separately and vary significantly by location and plan type.&rdquo;</blockquote>
+<div class="src"><a href="https://www.getdianahr.com/blog/gusto-payroll-review-features-pricing-use-cases" target="_blank">search synthesis, Gusto Payroll Review 2026 (DianaHR)</a>
+ · observed 2026-07-29 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Benefits-at-no-admin-fee with separately-billed variable premiums is consistent with Gusto model; not independently re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C010</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">No fully free full-service payroll plan exists in Gusto&#x27;s public packaging; the only free-trial hook found is for the &#x27;Time &amp; Attendance Plus&#x27; add-on module, not the core payroll plans.</div>
+<blockquote>&ldquo;The platform provides a &quot;free trial for Time &amp; Attendance Plus&quot; but no permanently free full-service payroll plan is listed on Gusto&#x27;s public pricing page.&rdquo;</blockquote>
+<div class="src"><a href="https://www.workstream.us/blog/gusto-pricing" target="_blank">Gusto Pricing: How Much Does Gusto Really Cost in 2026</a>
+ · observed 2026-07-29 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> No free full-service payroll plan is accurate; Time &amp; Attendance Plus free-trial hook not independently re-checked.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C011</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Beyond the three headline tiers, Gusto has add-on costs (priority support upgrade, state tax registration, benefits/broker services) that are referenced but not itemized with specific prices in third-party breakdowns — indicating these costs are disclosed only deeper in the funnel or at signup, not on the comparison table.</div>
+<blockquote>&ldquo;The article mentions several optional expenses but does not provide specific pricing:
+- Priority support upgrade
+- State tax registration (varies by state)
+- Benefits-related services and broker integration
+- Tax-advantaged benefits
+- 401(k)-related services&rdquo;</blockquote>
+<div class="src"><a href="https://www.workstream.us/blog/gusto-pricing" target="_blank">Gusto Pricing: How Much Does Gusto Really Cost in 2026</a>
+ · observed 2026-07-29 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Claim is about the article&#x27;s non-itemized add-on mentions; internally consistent, low-risk.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C012</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">No enterprise/&#x27;contact sales&#x27; tier with public pricing was found above Premium in any reachable source; one search synthesis vaguely references a &#x27;custom pricing tier for larger teams&#x27; but no source could confirm exact wording or gating criteria, suggesting Gusto&#x27;s public self-serve transparency effectively ends at Premium ($180+$22/employee) with mid-market/enterprise handled off-page.</div>
+<blockquote>&ldquo;Gusto provides a custom pricing tier for larger teams and enterprise businesses, which includes additional features and dedicated support. However, the search results don&#x27;t provide specific pricing details for enterprise plans, suggesting that custom quotes would require contacting sales.&rdquo;</blockquote>
+<div class="src"><a href="https://peoplemanagingpeople.com/tools/gusto-pricing/" target="_blank">search synthesis referencing People Managing People Gusto pricing guide</a>
+ · observed 2026-07-29 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Public self-serve ends at Premium; claim honestly hedges the vague &#x27;custom tier&#x27; reference rather than asserting it.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C038</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Recent Capterra reviewers flag pricing pressure at scale: a March 2026 review cites &#x27;rising per-employee costs&#x27; and a February 2026 review notes &#x27;pricing can add up quickly as you scale, especially when adding features like time tracking or benefits administration.&#x27;</div>
+<blockquote>&ldquo;pricing can add up quickly as you scale, especially when adding features like time tracking or benefits administration&rdquo;</blockquote>
+<div class="src"><a href="https://www.capterra.com/p/131882/Gusto/reviews/" target="_blank">Gusto Reviews | Capterra</a>
+ · observed 2026-07-29 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Pricing-at-scale complaints align with confirmed 2026 increases; specific dated quotes not re-verified.</div>
+</div></section><section><h2>ads <span class="count">8</span></h2><div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C043</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto runs a sustained linear TV/CTV advertising program, not a one-off brand spot: iSpot.tv catalogs at least 9 distinct Gusto TV creative titles (&#x27;Long Beach Coast&#x27;, &#x27;I Am You&#x27;, &#x27;Famous&#x27;, &#x27;Looking Cool&#x27;, &#x27;One Click&#x27;, &#x27;Time Is Money&#x27;, &#x27;Time Tracking&#x27;, &#x27;Too Much on Your Plate?&#x27;, &#x27;Business Payroll: $55&#x27;) plus the fetched &#x27;Business Payroll&#x27; 30-sec spot published June 26, 2024.</div>
+<blockquote>&ldquo;Gusto TV Spot, &#x27;Business Payroll&#x27; ... 30 seconds ... Published: June 26, 2024&rdquo;</blockquote>
+<div class="src"><a href="https://www.ispot.tv/ad/6c5X/gusto-business-payroll" target="_blank">Gusto TV Spot, &#x27;Business Payroll&#x27; - iSpot</a>
+ · observed 2026-07-29 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> iSpot brand page and individual spots (Business Payroll, Business Payroll: $55, Famous, Looking Cool) re-verified — sustained TV program confirmed.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C045</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Detailed TV performance data (national airings, first/last air date, networks) for Gusto&#x27;s spots is gated behind an iSpot registration wall requiring a work email, so exact flight dates and channel weight can&#x27;t be confirmed from the public page.</div>
+<blockquote>&ldquo;detailed ad metrics—including &quot;National Airings,&quot; &quot;First Airing,&quot; &quot;Last Airing,&quot; and &quot;Recently Aired On&quot; information—are locked behind a registration form requiring a work email address to unlock&rdquo;</blockquote>
+<div class="src"><a href="https://www.ispot.tv/ad/6c5X/gusto-business-payroll" target="_blank">Gusto TV Spot, &#x27;Business Payroll&#x27; - iSpot</a>
+ · observed 2026-07-29 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> iSpot gating of detailed airing metrics behind a work-email wall is a directly observable, consistent measured claim.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C048</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto runs a formal, tiered accountant/bookkeeper partner co-marketing program offering up to 20% revenue share, free marketing collateral for Bronze/Silver/Gold partners, and featured visibility in a directory reaching 500,000+ small businesses — a structured channel-partner acquisition motion running alongside paid media.</div>
+<blockquote>&ldquo;the more clients you add, the more perks you unlock, including greater visibility to 500,000+ small businesses through their partner directory. Additionally, partners get up to 20% revenue share, with dedicated partner support, expanded marketing resources, and a featured listing in Gusto&#x27;s Partner Directory&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/partners/accountants" target="_blank">Become a Gusto Partner and Grow Your Accounting Firm</a>
+ · observed 2026-07-29 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Up-to-20% rev share and directory reach confirmed in spirit, but directory size appears elsewhere as ~400,000 vs the claimed 500,000+; proxy, medium.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C049</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto&#x27;s partner program terms explicitly forbid accountant partners from running paid search on Gusto&#x27;s trademarked terms, reserving branded PPC exclusively for Gusto itself.</div>
+<blockquote>&ldquo;Partners must not participate in pay-per-click advertising on trademarked terms, including any derivations, variations or misspellings thereof, for search or content-based campaigns on Google, MSN, or Yahoo&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/partner-resources/gusto-partner-program-for-accountants" target="_blank">Gusto&#x27;s Partner Program for Accountants</a>
+ · observed 2026-07-29 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Specific trademarked-term PPC prohibition quote is plausible and consistent with partner-program terms; not re-fetched.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C050</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto has a dedicated, senior-level demand-gen organization: a &#x27;Head of Demand Generation&#x27; role reporting into the CMO function overseeing Growth Marketing, Customer Marketing and Performance Marketing, plus a separate &#x27;Senior Paid Media Manager, Brand&#x27; role based in San Francisco spanning SEM and affiliates.</div>
+<blockquote>&ldquo;Head of Demand Generation ... responsible for driving Customer Acquisition, Expansion and Retention, leading Growth Marketing, Customer Marketing, and Performance Marketing teams&rdquo;</blockquote>
+<div class="src"><a href="https://www.linkedin.com/jobs/view/head-of-demand-generation-at-gusto-3643415635" target="_blank">Gusto hiring Head of Demand Generation in United States | LinkedIn</a>
+ · observed 2026-07-29 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> LinkedIn job-post quote plausibly describes the demand-gen org; proxy, not re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C051</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Gusto also staffs performance-marketing-specific roles (Senior Performance Marketing Manager; Senior Performance Marketing Manager, GTM Experimentation), indicating an ongoing paid-acquisition testing function beyond brand TV/CTV.</div>
+<blockquote>&ldquo;Gusto hiring Senior Performance Marketing Manager ... Job Application for Senior Performance Marketing Manager, GTM Experimentation at Gusto, Inc.&rdquo;</blockquote>
+<div class="src"><a href="https://www.linkedin.com/jobs/view/senior-performance-marketing-manager-at-gusto-4024734792" target="_blank">Gusto hiring Senior Performance Marketing Manager | LinkedIn</a>
+ · observed 2026-07-29 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Performance-marketing role titles are plausible job listings; low-weight proxy.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C053</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">No Gusto-specific creative or spend data surfaced on third-party ad-spy aggregators (BigSpy, SocialPeta) despite targeted site-restricted searches — either coverage is thin for this vertical or Gusto&#x27;s social ad volume through these trackable networks is low.</div>
+<blockquote>&ldquo;the search results don&#x27;t contain specific information about current ad spend estimates for Gusto across these platforms&rdquo;</blockquote>
+<div class="src"><a href="https://bigspy.com/en" target="_blank">BigSpy - #1 Free Adspy Tool</a>
+ · observed 2026-07-29 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Absence-of-data on BigSpy/SocialPeta is inferential; consistent but not conclusive.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C054</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Across the four Tier-1 official ad libraries (Meta, Google Ads Transparency, LinkedIn, TikTok), none rendered verbatim Gusto creative to automated fetch/search — combined with thin Tier-2 ad-spy coverage, current always-on paid social/search creative volume could not be directly measured in this pass; Gusto&#x27;s visible, confirmable paid posture instead skews toward linear TV/CTV brand spend and the accountant-partner channel.</div>
+
+<div class="src"><a href="https://www.facebook.com/ads/library/?active_status=active&amp;ad_type=all&amp;country=US&amp;q=Gusto&amp;search_type=keyword_unordered" target="_blank">Meta Ad Library search for Gusto (403 to fetch)</a>
+ · observed 2026-07-29 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Null result from automated fetch of ad libraries is a reasonable inference; note it measures fetch failure, not confirmed absence of paid social.</div>
+</div></section><section><h2>social <span class="count">5</span></h2><div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C028</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto&#x27;s LinkedIn company page (correct URL linkedin.com/company/gustohq) shows 161,509 followers and a listed employee count of 4,561 in the 1,001-5,000 company-size band.</div>
+<blockquote>&ldquo;Follower Count: 161,509 followers&rdquo;</blockquote>
+<div class="src"><a href="https://www.linkedin.com/company/gustohq" target="_blank">Gusto | LinkedIn</a>
+ · observed 2026-07-29 · lane: social</div>
+<div class="vnote"><b>verifier:</b> LinkedIn page auth-walled; exact 161,509 followers/4,561 employees uncheckable but band is internally consistent.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C031</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto amplifies third-party recognition on LinkedIn, citing being named to CNBC&#x27;s World&#x27;s Top Fintech Companies list for 2026 (second consecutive year) in the Enterprise Fintech category.</div>
+<blockquote>&ldquo;Named one of CNBC&#x27;s World&#x27;s Top Fintech Companies for 2026 (second consecutive year) in the Enterprise Fintech category&rdquo;</blockquote>
+<div class="src"><a href="https://www.linkedin.com/company/gustohq" target="_blank">Gusto | LinkedIn</a>
+ · observed 2026-07-29 · lane: social</div>
+<div class="vnote"><b>verifier:</b> CNBC top-fintech recognition plausible but &#x27;Enterprise Fintech&#x27; category and &#x27;second consecutive year&#x27; specifics unverified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C032</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Gusto&#x27;s visible LinkedIn content mixes product-feature announcements with motivational brand content celebrating small-business founders and framing Gusto as handling &#x27;the boring stuff&#x27; so owners can focus on their passion — no customer-story or meme-style posts surfaced in the sample reachable.</div>
+<blockquote>&ldquo;Motivational content celebrating small business founders, positioning Gusto as a supportive partner that &quot;handles the boring stuff&quot;&rdquo;</blockquote>
+<div class="src"><a href="https://www.linkedin.com/company/gustohq" target="_blank">Gusto | LinkedIn</a>
+ · observed 2026-07-29 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Inferred content-mix characterization from a limited sample; self-flagged as incomplete.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C033</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto&#x27;s X account (@GustoHQ) opened 2026 with a data-driven thread on small-business hiring trends: &#x27;Barely a week into 2026, and we&#x27;ve already got some good news for small businesses. Small business hiring is moving again. Gusto&#x27;s December jobs data shows a rebound - and where hiring momentum is building heading into 2026.&#x27;</div>
+<blockquote>&ldquo;Barely a week into 2026, and we&#x27;ve already got some good news for small businesses. Small business hiring is moving again. Gusto&#x27;s December jobs data shows a rebound - and where hiring momentum is building heading into 2026.&rdquo;</blockquote>
+<div class="src"><a href="https://x.com/GustoHQ/status/2009338692264206501" target="_blank">Gusto on X</a>
+ · observed 2026-07-29 · lane: social</div>
+<div class="vnote"><b>verifier:</b> X post auth-walled; Gusto does publish monthly jobs data, so opening-2026 hiring thread is consistent.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C035</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto&#x27;s LinkedIn &#x27;Life&#x27; presence promotes a 6-month paid Software Engineering Apprenticeship for NY/SF-based early-career engineers from nontraditional backgrounds, and a 2026-graduate hiring-trends report citing in-house senior economist Aaron Terrazas — culture/hiring and proprietary-research are distinct declared content pillars.</div>
+<blockquote>&ldquo;Gusto is launching a Software Engineering Apprenticeship with a 6-month, paid program for early-career engineers based in New York or San Francisco&rdquo;</blockquote>
+<div class="src"><a href="https://www.linkedin.com/company/gustohq/life" target="_blank">Gusto: Life | LinkedIn</a>
+ · observed 2026-07-29 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Aaron Terrazas is Gusto&#x27;s real senior economist; apprenticeship program plausible but LinkedIn Life page unreachable.</div>
+</div></section><section><h2>customers <span class="count">4</span></h2><div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C036</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Gusto has 4,217 reviews on Capterra at a 4.6/5.0 average rating.</div>
+<blockquote>&ldquo;Total Reviews: 4,217 / Average Rating: 4.6/5.0&rdquo;</blockquote>
+<div class="src"><a href="https://www.capterra.com/p/131882/Gusto/reviews/" target="_blank">Gusto Reviews | Capterra</a>
+ · observed 2026-07-29 · lane: social</div>
+<div class="vnote"><b>verifier:</b> 4.6/5 rating confirmed via search; count 4,217 vs snippet&#x27;s 4,148 is consistent with later capture.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C037</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">A recent Capterra reviewer (Oct 2025) flagged slow escalation-style support: &#x27;support is good but sometimes it takes too long to solve an issue because I keep on getting redirected.&#x27;</div>
+<blockquote>&ldquo;support is good but sometimes it takes too long to solve an issue because I keep on getting redirected&rdquo;</blockquote>
+<div class="src"><a href="https://www.capterra.com/p/131882/Gusto/reviews/" target="_blank">Gusto Reviews | Capterra</a>
+ · observed 2026-07-29 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Direct-quote review measured but individual Oct-2025 review not independently re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C039</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Capterra reviewers report switching to Gusto from ADP Workforce Now, QuickBooks, and Paychex Flex, citing ease of use, affordability, and simpler setup as the deciding factors.</div>
+<blockquote>&ldquo;Users switched from ADP Workforce Now, QuickBooks, and Paychex Flex primarily due to &quot;ease of use,&quot; affordability, and simpler setup compared to competitors&rdquo;</blockquote>
+<div class="src"><a href="https://www.capterra.com/p/131882/Gusto/reviews/" target="_blank">Gusto Reviews | Capterra</a>
+ · observed 2026-07-29 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Switching-from ADP/QuickBooks/Paychex synthesis is reasonable but aggregated, not a single verifiable quote.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C062</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto&#x27;s small-business payroll product page carries a review-site badge claim: &#x27;Gusto Ranked #1 on G2 Fall 2025&#x27; — proof pattern leans on review-site scores rather than named case-study logos on this page.</div>
+<blockquote>&ldquo;Payroll Software &amp; Services for Small Businesses | Gusto Ranked #1 on G2 Fall 2025&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/product/payroll" target="_blank">Gusto payroll product page (search result title)</a>
+ · observed 2026-07-29 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> G2 &#x27;Ranked #1 Fall 2025&#x27; badge is a self-stated review-site claim; plausible on the payroll page.</div>
+</div></section><section><h2>other <span class="count">4</span></h2><div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C046</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Similarweb traffic-source data shows Gusto&#x27;s visits are dominated by direct navigation and organic search, with email as the third channel, and the tool explicitly flags paid social as underused relative to other channels.</div>
+<blockquote>&ldquo;Direct traffic dominates at 53.63% of desktop visits ... Organic search ranks second ... Email/Mail traffic ranks third ... paid social is the most underutilized channel&rdquo;</blockquote>
+<div class="src"><a href="https://www.similarweb.com/website/gusto.com/" target="_blank">Gusto.com Traffic Overview - Similarweb</a>
+ · observed 2026-07-29 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Grade overreach: &#x27;paid social most underutilized&#x27; reads as model interpretation, not a literal Similarweb flag, and exact percentages weren&#x27;t re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C047</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto&#x27;s traffic is heavily US-concentrated (95.33%), with the next-largest source, the Philippines, at just 1.05% — paid targeting/geo-spread is effectively domestic-only.</div>
+<blockquote>&ldquo;The United States comprises 95.33% of traffic, with minor contributions from: Philippines: 1.05%, India: 0.46%, Colombia: 0.29%, Canada: 0.26%&rdquo;</blockquote>
+<div class="src"><a href="https://www.similarweb.com/website/gusto.com/" target="_blank">Gusto.com Traffic Overview - Similarweb</a>
+ · observed 2026-07-29 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> US-concentration figures are internally consistent Similarweb data but were not independently re-verified (dynamic).</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C055</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto&#x27;s HR-software category rank on Similarweb is #1, alongside a global rank of ~#4,027 and US rank ~#832, up from a global rank of #4,615 three months prior — traffic (a proxy for overall demand-gen effectiveness incl. paid) is trending up.</div>
+<blockquote>&ldquo;Global rank: #4,027 (improved from #4,615 three months prior) ... Category rank (Human Resources): #1 ... Traffic increased 12.12% compared to the previous month&rdquo;</blockquote>
+<div class="src"><a href="https://www.similarweb.com/website/gusto.com/" target="_blank">Gusto.com Traffic Overview - Similarweb</a>
+ · observed 2026-07-29 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Similarweb rank/traffic-trend figures are internally consistent but dynamic and not independently re-verified.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C064</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Per a third-party GTM analysis (Sacra), Gusto reported roughly 200,000 SMB customers and $260M revenue in 2021 (up 58% from $165M in 2020) — dated figures, useful only as historical scale reference, not current state.</div>
+<blockquote>&ldquo;Gusto did $260M in revenue in 2021, up 58% from 2020 ($165M)... 200,000 SMB customers&rdquo;</blockquote>
+<div class="src"><a href="https://sacra.com/p/gusto-vs-rippling-vs-deel-vs-check/" target="_blank">Gusto vs. Rippling vs. Deel vs. Check</a>
+ · observed 2026-07-29 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Re-fetched Sacra page: &#x27;$260M in revenue in 2021, up 58% from 2020 ($165M)&#x27; and &#x27;~200,000 SMB customers&#x27; quoted verbatim; proxy third-party analysis of dated 2021 figures caps at medium.</div>
+</div></section>
+<section><h2>post-eval corrections <span class="count">1</span></h2><p class="note">The eval harness catching things is the audit trail of it working.</p><ul class="corr"><li>C040 re-graded to inferred: quote-less non-inferred claim (protocol requires a verbatim quote or the inferred grade).</li></ul></section>
+<footer>Machine-readable twin: the claims JSON in the same folder. Grades — measured: read from a fetched page ·
+self-claimed: the competitor says so · proxy: third-party sourced · inferred: analyst read with basis stated.</footer>
+<script>
+document.getElementById('filters').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#filters button').forEach(x => x.classList.toggle('on', x === b));
+  const f = b.dataset.f;
+  document.querySelectorAll('.claim').forEach(c => {
+    let show = f === 'all'
+      || (f === 'v:flagged' && ['unsupported','contradicted'].includes(c.dataset.v))
+      || (f.startsWith('v:') && c.dataset.v === f.slice(2))
+      || (f.startsWith('e:') && c.dataset.e === f.slice(2));
+    c.classList.toggle('hidden', !show);
+  });
+  document.querySelectorAll('section').forEach(s => {
+    const any = s.querySelectorAll('.claim:not(.hidden)').length || !s.querySelector('.claim');
+    s.style.display = any ? '' : 'none';
+  });
+});
+</script>
+</body></html>

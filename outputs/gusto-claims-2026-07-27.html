@@ -1,0 +1,949 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gusto — claims ledger</title>
+<style>
+  :root { --ink:#1f2328; --dim:#6a737d; --faint:#98a1ab; --line:#e6e8eb; --soft:#f6f7f8;
+          --ok:#0e7a55; --okbg:#e7f5ef; --warn:#8a5a00; --warnbg:#fdf3dc;
+          --bad:#b42318; --badbg:#fdecea; --blue:#0b6bcb; --bluebg:#e8f1fc; }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#e6e8eb; --dim:#9aa4b0; --faint:#6b7480; --line:#2a2f36; --soft:#171a1f;
+             --ok:#4cc596; --okbg:#0d2b20; --warn:#e2b93d; --warnbg:#2c2410;
+             --bad:#f08578; --badbg:#331512; --blue:#6cb0f5; --bluebg:#10233a; }
+    body { background:#0f1114; }
+  }
+  * { box-sizing:border-box; margin:0; }
+  body { font:15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+         color:var(--ink); max-width:860px; margin:0 auto; padding:48px 28px 90px; }
+  h1 { font-size:30px; letter-spacing:-.4px; }
+  .sub { color:var(--dim); margin-top:6px; }
+  .statbar { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 6px; }
+  .stat { border:1px solid var(--line); border-radius:999px; padding:5px 13px; font-size:12.5px; color:var(--dim); }
+  .stat b { color:var(--ink); }
+  .filters { position:sticky; top:0; background:inherit; backdrop-filter:blur(6px);
+             display:flex; flex-wrap:wrap; gap:6px; padding:14px 0; border-bottom:1px solid var(--line);
+             margin-bottom:10px; z-index:5; background-color:rgba(255,255,255,.85); }
+  @media (prefers-color-scheme: dark) { .filters { background-color:rgba(15,17,20,.85); } }
+  .filters button { border:1px solid var(--line); background:none; color:var(--dim); border-radius:999px;
+                    padding:5px 13px; font:inherit; font-size:12.5px; cursor:pointer; }
+  .filters button.on { background:var(--bluebg); color:var(--blue); border-color:var(--blue); }
+  section { margin-top:34px; }
+  h2 { font-size:19px; padding-bottom:8px; border-bottom:1px solid var(--line); margin-bottom:14px;
+       text-transform:capitalize; }
+  .count { color:var(--faint); font-weight:400; font-size:14px; }
+  .claim { border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:12px; }
+  .claim.hidden { display:none; }
+  .head { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:8px; }
+  .cid { font-family:ui-monospace, Menlo, monospace; font-size:12px; color:var(--blue);
+         background:var(--bluebg); border-radius:6px; padding:2px 8px; }
+  .pill { font-size:11.5px; border-radius:999px; padding:2px 10px; }
+  .p-ok { color:var(--ok); background:var(--okbg); }
+  .p-warn { color:var(--warn); background:var(--warnbg); }
+  .p-bad { color:var(--bad); background:var(--badbg); }
+  .p-dim { color:var(--dim); background:var(--soft); }
+  .text { font-size:15px; }
+  blockquote { margin:10px 0 8px; padding:8px 14px; border-left:3px solid var(--line);
+               color:var(--dim); font-style:italic; background:var(--soft); border-radius:0 8px 8px 0; }
+  .src { font-size:12.5px; color:var(--faint); }
+  .src a { color:var(--blue); text-decoration:none; }
+  .vnote { margin-top:8px; font-size:12.5px; color:var(--dim); background:var(--soft);
+           border-radius:8px; padding:7px 11px; }
+  .vnote b { font-weight:600; }
+  .note { color:var(--dim); font-size:13px; margin-bottom:10px; }
+  .corr { padding-left:20px; color:var(--dim); font-size:13.5px; }
+  .corr li { margin-bottom:8px; }
+  footer { margin-top:40px; color:var(--faint); font-size:12.5px; border-top:1px solid var(--line); padding-top:14px; }
+</style></head><body>
+<h1>Gusto — claims ledger</h1>
+<div class="sub">Every fact behind the brief, with its verbatim quote, source, and how hard it survived verification.
+Generated 2026-07-28 · model </div>
+<div class="statbar">
+  <span class="stat"><b>78</b> claims</span>
+  <span class="stat"><b>56</b> confirmed</span>
+  <span class="stat"><b>22</b> plausible</span>
+  <span class="stat"><b>0</b> flagged</span>
+  <span class="stat"><b>25</b> measured · <b>27</b> proxy ·
+      <b>14</b> self-claimed · <b>12</b> inferred</span>
+</div>
+<div class="filters" id="filters">
+  <button class="on" data-f="all">all</button>
+  <button data-f="v:confirmed">confirmed</button>
+  <button data-f="v:plausible">plausible</button>
+  <button data-f="v:flagged">flagged</button>
+  <button data-f="e:measured">measured</button>
+  <button data-f="e:proxy">proxy</button>
+  <button data-f="e:stated_by_competitor">self-claimed</button>
+  <button data-f="e:inferred">inferred</button>
+</div>
+<section><h2>messaging <span class="count">12</span></h2><div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C001</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Homepage hero (live 2026-07-27): H1 &#x27;Payroll, HR, Benefits. Simplified.&#x27; with membership-framed subhead and free-account CTA; page title tag is &#x27;Gusto | Online HR Services: Payroll, Benefits and everything else&#x27;</div>
+<blockquote>&ldquo;Payroll, HR, Benefits. Simplified. / Join 500,000+ small and medium-sized businesses that take care of their people with Gusto. / Create free account&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/" target="_blank">Gusto | Online HR Services: Payroll, Benefits and everything else</a>
+ · observed 2026-07-27 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Measured rendered-browser hero read; verbatim quote carries claim.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C005</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Proof pattern is own-survey stat bands repeated on homepage, payroll page, and vs pages — small-n internal surveys footnoted as methodology, not third-party benchmarks</div>
+<blockquote>&ldquo;9 out of 10 customers would recommend Gusto. / 152 hrs/year average time saved on tax &amp; compliance by switching to Gusto. / 4.5/5 stars Average rating from Gusto customers. / Survey of 538 Gusto Customers, September 2024&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/" target="_blank">Gusto homepage — Compare Gusto stat band</a>
+ · observed 2026-07-27 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Verbatim survey bands with n=538 footnote; honestly graded as Gusto&#x27;s own stats.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C010</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Anti-Rippling attack frame on the vs page paints the alternative as complex and fee-laden while claiming the &#x27;modern platform&#x27; mantle for Gusto</div>
+<blockquote>&ldquo;Don&#x27;t get caught using clunky, outdated systems full of add-ons and hidden fees. Choose the modern platform for payroll, benefits, and HR—trusted by over 500,000 businesses.&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/product/compare/gusto-vs-rippling" target="_blank">Gusto vs Rippling — hero copy</a>
+ · observed 2026-07-27 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Attack-frame quote verbatim from rendered vs-page read.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C018</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Customer-count messaging drift: Gusto&#x27;s March 2024 company-news claimed &#x27;more than 300,000 businesses&#x27;; the July 2026 homepage claims 500,000+ — a ~67% claimed-count increase in ~28 months (2024 figure from search snippet of gusto.com/company-news, not fetched)</div>
+
+<div class="src"><a href="https://gusto.com/company-news/gusto-joins-fast-company-most-innovative-companies" target="_blank">Gusto joins Fast Company&#x27;s list of Most Innovative Companies in 2024 | Gusto</a>
+ · observed 2026-07-27 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> 500K side measured; March 2024 300K anchor is snippet-only but matches contemporaneous Gusto press, and the 67%/28-month math checks.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C023</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Gusto&#x27;s TV angle mix pairs customer-testimonial spots with pain-relief/humor problem spots, per iSpot creative titles (testimonial: &#x27;Kirsten: Payroll&#x27;, &#x27;Christopher Dipnarine&#x27;, &#x27;Heritage Bikes and Coffee&#x27;; pain/humor: &#x27;Too Much on Your Plate?&#x27;, &#x27;Root Canal&#x27;, &#x27;Time Is Money&#x27;, &#x27;No Big Deal&#x27;).</div>
+<blockquote>&ldquo;Kirsten: Payroll&rdquo;</blockquote>
+<div class="src"><a href="https://www.ispot.tv/brands/f2T/gusto" target="_blank">Gusto TV Commercials - iSpot</a>
+ · observed 2026-07-27 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> &#x27;Kirsten: Payroll&#x27; corroborated (163 airings); same-catalog titles from a read that re-verified exactly.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C028</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto&#x27;s Meta creative strategy is product-UI-as-demo: the ad creative is the actual payroll dashboard (progress bar, employee name, Run payroll button) with minimal four-word copy &#x27;Payroll just got easier&#x27; targeting an already problem-aware audience.</div>
+<blockquote>&ldquo;Payroll just got easier&rdquo;</blockquote>
+<div class="src"><a href="https://adkit.so/resources/ads-examples/facebook-ad-examples" target="_blank">15 Proven Facebook Ad Examples to Copy (With Breakdowns)</a>
+ · observed 2026-07-27 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Same proxy source; UI-as-creative matches Gusto&#x27;s known ad style.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C029</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto&#x27;s recurring speed proof point in social/ad content is a customer-sourced time-to-run-payroll stat, posted from its own Facebook page.</div>
+<blockquote>&ldquo;Average time to run payroll with Gusto? Our customers say 11 minutes&rdquo;</blockquote>
+<div class="src"><a href="https://www.facebook.com/GustoHQ/posts/average-time-to-run-payroll-with-gusto-our-customers-say-11-minutes/2022700324498346/" target="_blank">Gusto Facebook post - Average time to run payroll</a>
+ · observed 2026-07-27 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Facebook permalink slug carries the quote; consistent with Gusto&#x27;s speed-stat marketing.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C032</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto&#x27;s construction segment page carries the self-claim &#x27;#1 in Satisfaction Score&#x27; in its SEO/ad-facing page title.</div>
+<blockquote>&ldquo;Construction Payroll Services &amp; Software | Gusto #1 in Satisfaction Score&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/product/solutions/industry/construction" target="_blank">Construction Payroll Services &amp; Software | Gusto</a>
+ · observed 2026-07-27 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> SERP-title self-badge; matches Gusto&#x27;s badge-in-title pattern, honestly graded self-claim.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C033</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto&#x27;s core payroll page title leads with a G2 leadership badge as its trust hook in search results.</div>
+<blockquote>&ldquo;Payroll Software &amp; Services for Small Businesses | Gusto Ranked #1 on G2 Fall 2025&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/product/payroll" target="_blank">Payroll Software &amp; Services for Small Businesses | Gusto</a>
+ · observed 2026-07-27 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> SERP title matches the G2 Fall 2025 badge measured on-site (C004).</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C050</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Gusto&#x27;s LinkedIn self-description leads with SMB-economy mission language and a 500K-customer proof point.</div>
+<blockquote>&ldquo;On a mission to grow the small business economy with technology and heart. Trusted by 500K+ businesses.&rdquo;</blockquote>
+<div class="src"><a href="https://rs.linkedin.com/company/gustohq" target="_blank">Gusto | LinkedIn</a>
+ · observed 2026-07-27 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Verbatim self-description; 500K+ consistent across surfaces.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C072</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">By May 7, 2026 Gusto had rebranded Guideline as &#x27;Gusto 401(k)&#x27; and markets it with a superlative claim — retirement is now first-party Gusto product language, not a partner integration.</div>
+<blockquote>&ldquo;Gusto 401(k), the best retirement offering for small businesses&rdquo;</blockquote>
+<div class="src"><a href="https://www.prnewswire.com/news-releases/gusto-surpasses-1-billion-in-revenue-serving-more-than-500-000-small-businesses-302765484.html" target="_blank">Gusto Surpasses $1 Billion in Revenue release (May 7, 2026)</a>
+ · observed 2026-07-27 · lane: news</div>
+<div class="vnote"><b>verifier:</b> &#x27;Gusto 401(k), the best retirement offering&#x27; verbatim in re-fetched PR; rebrand corroborated by Nov 2025 launch coverage.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C073</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">In its May 7, 2026 milestone release CEO Josh Reeves makes AI the official growth narrative — AI framed as roadmap accelerant for SMB breadth, not as a standalone product SKU.</div>
+<blockquote>&ldquo;AI is enabling us to dramatically accelerate our roadmap and expand what we can do for small businesses&rdquo;</blockquote>
+<div class="src"><a href="https://www.prnewswire.com/news-releases/gusto-surpasses-1-billion-in-revenue-serving-more-than-500-000-small-businesses-302765484.html" target="_blank">Gusto Surpasses $1 Billion in Revenue release (May 7, 2026)</a>
+ · observed 2026-07-27 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Reeves AI-roadmap quote verbatim in re-fetched release.</div>
+</div></section><section><h2>positioning <span class="count">18</span></h2><div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C002</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Category frame: Gusto self-defines as an &#x27;all-in-one payroll and HR platform&#x27; in the homepage FAQ — plain payroll+HR triad, not &#x27;people platform&#x27; and not &#x27;workforce management&#x27;; homepage nowhere uses the phrase &#x27;people platform&#x27;</div>
+<blockquote>&ldquo;Gusto is an all-in-one payroll and HR platform that helps businesses take care of their teams.&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/" target="_blank">Gusto homepage FAQ — What does Gusto do?</a>
+ · observed 2026-07-27 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Measured FAQ quote; &#x27;people platform&#x27; absence from full-page read is credible.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C003</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">About page anchors mission on meaningful work and explicitly frames the product as a &#x27;small business platform&#x27;; discloses ZenPayroll 2012 origin and &#x27;tens of billions of dollars of payroll&#x27; processed annually</div>
+<blockquote>&ldquo;We&#x27;re making work meaningful for everyone, everywhere. / Our small business platform helps businesses take care of their hardworking teams. / Launched in 2012 as ZenPayroll, Gusto serves more than 500,000 businesses nationwide.&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/about" target="_blank">What is Gusto? | Our Platform, Team, and Culture</a>
+ · observed 2026-07-27 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Measured About read; ZenPayroll 2012 launch is historically correct.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C004</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">No claimed-onlyness sentence exists on homepage, payroll page, or vs pages — uniqueness is carried entirely by review-site superlative badges (diffuse positioning); the vs-Rippling page opens with a G2 banner and an awards block</div>
+<blockquote>&ldquo;Gusto is rated #1 in payroll | G2 Fall 2025 / #1 Most Innovative Company in HR 2025 / #1 Highest Satisfaction Software, G2 Review 2026 / America&#x27;s Best Online Platforms, Newsweek &amp; Statista 2025&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/product/compare/gusto-vs-rippling" target="_blank">Rippling vs Gusto: Compare Pricing, Product Features and More | Gusto</a>
+ · observed 2026-07-27 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Measured negative across three pages; badge roster consistent with C033/C058.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C007</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Top navigation order elevates the accountant channel to a top-level item — Products, Business types, For accountants, Resources, Pricing — signaling accountants/bookkeepers as a primary distribution channel</div>
+<blockquote>&ldquo;Products | Business types | For accountants | Resources | Pricing&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/" target="_blank">Gusto homepage header navigation</a>
+ · observed 2026-07-27 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Measured nav read; accountant channel as top-level item is verbatim.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C008</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Gusto maintains 14 named comparison pages (footer roster on vs pages): Rippling, Wave, Paylocity, ADP, Justworks, Paycom, TriNet, Paychex, Square Payroll, Patriot, QuickBooks Payroll, BambooHR, OnPay, Homebase — payroll incumbents and SMB tools, no enterprise HCM (no Workday/UKG)</div>
+<blockquote>&ldquo;Gusto vs. Rippling / Gusto vs. Wave / Gusto vs. Paylocity / Gusto vs. ADP / Gusto vs. Justworks / Gusto vs. Paycom / Gusto vs. TriNet / Gusto vs. Paychex / Gusto vs. Square Payroll / Gusto vs. Patriot / Gusto vs. QuickBooks Payroll / Gusto vs. BambooHR / Gusto vs. OnPay / Gusto vs. Homebase&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/product/compare/gusto-vs-rippling" target="_blank">Explore how Gusto stacks up to competitors (vs-page footer)</a>
+ · observed 2026-07-27 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> 14 vs-pages enumerated verbatim; no enterprise HCM names in roster.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C009</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Gusto runs a dedicated Rippling comparison page at /product/compare/gusto-vs-rippling that leads with an active switch-away pitch promising migration in under 7 days</div>
+<blockquote>&ldquo;Thinking of switching from Rippling? Make the move to Gusto in less than 7 days and simplify payroll today! Learn more about switching.&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/product/compare/gusto-vs-rippling" target="_blank">Rippling vs Gusto: Compare Pricing, Product Features and More | Gusto</a>
+ · observed 2026-07-27 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Measured vs-page read; sub-7-day switch pitch verbatim.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C012</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Gusto asserts a factual capability gap against Rippling on payroll speed — a contestable comparative claim Rippling&#x27;s team should fact-check for a counter-page</div>
+<blockquote>&ldquo;Rippling doesn&#x27;t currently offer next day or 2nd day payroll.&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/product/compare/gusto-vs-rippling" target="_blank">Gusto vs Rippling — Tax filings section</a>
+ · observed 2026-07-27 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Assertion is on the page and is refutable: Rippling&#x27;s own blog advertises same-day payroll via Business Banking (RTP/same-day ACH, 1pm ET cutoff), standard 2-4 day otherwise.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C013</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">The vs-Rippling FAQ explicitly fields Rippling-frame questions — &#x27;Is Rippling better for IT and device management?&#x27;, &#x27;Rippling modular vs Gusto bundled?&#x27;, &#x27;Which is preferred by startups?&#x27; — showing Gusto is defending against Rippling&#x27;s HR+IT platform narrative and the startup segment rather than ignoring it</div>
+<blockquote>&ldquo;Is Rippling better for IT and device management? / Rippling modular vs Gusto bundled? / Which is preferred by startups?&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/product/compare/gusto-vs-rippling" target="_blank">Gusto vs Rippling FAQs</a>
+ · observed 2026-07-27 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Measured FAQ read; Rippling-frame questions verbatim.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C017</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Segment architecture tops out below mid-market: solutions-by-size hub offers New businesses, Small businesses, Growing businesses, One employee (Gusto Solo), Contractor businesses, Remote &amp; Global, and Multiple businesses — no enterprise or mid-market page exists; industry pages are construction, restaurant, healthcare</div>
+<blockquote>&ldquo;But whether your business is large, small, or just you on your laptop, Gusto&#x27;s platform adapts to your specific needs.&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/product/solutions/size" target="_blank">Payroll and HR solutions by business size | Gusto</a>
+ · observed 2026-07-27 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Hub enumeration carries the claim; quoted &#x27;large&#x27; line is generic boilerplate, not a segment page.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C019</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Category-frame drift: the &#x27;People Platform&#x27; frame Gusto invented at its Sept 2015 ZenPayroll rebrand persists on third-party listings (ProductHunt: &#x27;The all-in-one people platform for payroll, benefits, HR&#x27;) but is absent from the July 2026 homepage, which uses plain &#x27;payroll and HR platform&#x27; — inferred quiet de-emphasis of the invented category; exact 2024/2025 homepage H1 unverifiable because all web archives were unreachable</div>
+
+<div class="src"><a href="https://www.producthunt.com/products/gusto" target="_blank">The all-in-one people platform for payroll, benefits, HR | Gusto | Product Hunt</a>
+ · observed 2026-07-27 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Inference honestly labeled; 2015 People Platform origin correct and homepage absence measured (C002), archive gap disclosed.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C031</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto maintains a segment landing-page architecture for paid/organic capture at /product/solutions/, split by industry (construction, franchise, financial-services, wholesale-distribution, plus restaurants, dental, healthcare, startups per its industry index) and by size (small-business vs medium-business) — enumerating the ICPs it buys.</div>
+<blockquote>&ldquo;Payroll &amp; HR services for Franchises | Gusto&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/product/solutions/industry" target="_blank">Payroll Solutions by Industry | Gusto</a>
+ · observed 2026-07-27 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Consistent with measured solutions-hub architecture (C017); segment list itself snippet-based.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C034</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto runs a dedicated anti-Rippling comparison landing page at gusto.com/product/compare/gusto-vs-rippling, angling on transparent pricing (&#x27;no surprise fees&#x27;), unlimited payroll runs, and small-team simplicity; page itself is bot-blocked (403), evidenced via SERP title/snippet.</div>
+<blockquote>&ldquo;Rippling vs Gusto: Compare Pricing, Product Features and More | Gusto&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/product/compare/gusto-vs-rippling" target="_blank">Rippling vs Gusto: Compare Pricing, Product Features and More | Gusto</a>
+ · observed 2026-07-27 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Page existence and angles confirmed by positioning lane&#x27;s rendered read (C009-C011); 403 was access-method artifact.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C037</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Value metric is per-employee-per-month on top of a flat base fee, with all tier prices public and signup self-serve (no demo gate, no enterprise/custom tier above Premium observed). Packaging courts SMB self-serve buyers and structurally cedes enterprise; inferred from tier structure and sales motion across all fetched sources.</div>
+
+<div class="src"><a href="https://whichpayroll.com/pricing/gusto-pricing" target="_blank">Gusto Pricing 2026: Plans, Tier Gating, and What the Increases Mean for Your Budget</a>
+ · observed 2026-07-27 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Inferred packaging read; consistent with no-tier-above-Premium (C043) and no enterprise pages (C017).</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C047</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto publishes an official Rippling comparison page (gusto.com/product/compare/gusto-vs-rippling, &#x27;Rippling vs Gusto: Compare Pricing, Product Features and More&#x27;) whose search-surfaced framing attacks Rippling&#x27;s quote-based pricing as lacking upfront clarity versus Gusto&#x27;s flat public pricing — Gusto&#x27;s own comparative marketing, observed only via snippet because the page is bot-blocked.</div>
+<blockquote>&ldquo;Rippling&#x27;s modular, quote-based pricing is more customizable, but that flexibility comes at the cost of upfront clarity&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/product/compare/gusto-vs-rippling" target="_blank">Rippling vs Gusto: Compare Pricing, Product Features and More | Gusto</a>
+ · observed 2026-07-27 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Quote-based-pricing attack matches the rendered vs-page reads (C011/C013).</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C048</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Gusto&#x27;s comparison content claims coverage of 103+ countries versus Rippling&#x27;s 53+ — a Gusto self-assertion relayed via search snippet, and likely stale or repackaged given Gusto now refers new international EOR customers to partner Remote (May 2026); exploitable inconsistency for counter-messaging.</div>
+<blockquote>&ldquo;Gusto covers 103+ countries vs. Rippling&#x27;s 53+&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/product/compare/gusto-vs-rippling" target="_blank">Rippling vs Gusto: Compare Pricing, Product Features and More | Gusto</a>
+ · observed 2026-07-27 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> The 103-vs-53 line circulates in 2026 comparison content, but on-Gusto-page attribution is snippet-only and the figure is stale versus the confirmed May 2026 Remote referral and 120+ contractor countries.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C055</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">No competitor call-outs or comparative jabs appear anywhere in the sampled social output; voice is warm, SMB-celebratory, and self-referential — inferred from the full measured LinkedIn post sample plus absence of vs-competitor content in search coverage. They do not punch publicly.</div>
+
+<div class="src"><a href="https://rs.linkedin.com/company/gustohq" target="_blank">Gusto | LinkedIn</a>
+ · observed 2026-07-27 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Absence inference from a measured sample; no counterexample surfaced in any lane.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C066</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">As of May 7, 2026 Gusto states that the majority of its ARR comes from products other than payroll — evidence its multi-product platform expansion (benefits, 401(k), tax credits, compliance) is monetizing, not just messaging.</div>
+<blockquote>&ldquo;More than half of ARR now comes from products beyond payroll&rdquo;</blockquote>
+<div class="src"><a href="https://www.prnewswire.com/news-releases/gusto-surpasses-1-billion-in-revenue-serving-more-than-500-000-small-businesses-302765484.html" target="_blank">Gusto Surpasses $1 Billion in Revenue, Serving More Than 500,000 Small Businesses (PR Newswire, May 7, 2026)</a>
+ · observed 2026-07-27 · lane: news</div>
+<div class="vnote"><b>verifier:</b> &#x27;More than half of ARR now comes from products beyond payroll&#x27; verbatim in re-fetched release.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C076</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">As of July 2026 Gusto&#x27;s public job posts include a Mid-Market Payroll Account Executive (Denver) and an Enterprise Account Manager for GustoPro (NYC) — signals of mid-market sales investment and accountant-channel (GustoPro) monetization, but no visible enterprise-AE hiring cluster comparable to Rippling&#x27;s upmarket motion.</div>
+
+<div class="src"><a href="https://www.builtincolorado.com/job/mid-market-payroll-account-executive/7008438" target="_blank">Gusto job listings via Built In Colorado / Built In NYC / LinkedIn (observed Jul 2026)</a>
+ · observed 2026-07-27 · lane: news</div>
+<div class="vnote"><b>verifier:</b> GustoPro is real and roles plausible, but postings not re-fetched and no-enterprise-cluster is an absence inference.</div>
+</div></section><section><h2>product <span class="count">8</span></h2><div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C015</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Payroll product page leads on effortlessness and payout speed — H1 &#x27;Fast, accurate, and effortless payroll.&#x27;, new Instant pay/same-day pay capabilities, and included-tax-filing framed as a jab at competitors (&#x27;Other providers charge for this — with us, it&#x27;s included.&#x27;); contractor payments claimed in 120+ countries</div>
+<blockquote>&ldquo;Fast, accurate, and effortless payroll. / Instant pay: Run payroll 24/7/365 and funds land in employee accounts within minutes.&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/product/payroll" target="_blank">Payroll Software &amp; Services for Small Businesses | Gusto Ranked #1 on G2 Fall 2025</a>
+ · observed 2026-07-27 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Measured payroll-page read; 120+ contractor countries consistent with current Gusto marketing.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C041</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">As of May 1, 2026 Gusto stopped selling first-party international EOR to new customers and instead refers them to partner Remote, with Remote acting as the legal employer — i.e., Gusto has exited first-party global employment for new business (per whichpayroll teardown, last reviewed April 2026 / data verified July 2026).</div>
+<blockquote>&ldquo;Handled by partner Remote; new customers referred from 1 May 2026 (Remote is the employer)&rdquo;</blockquote>
+<div class="src"><a href="https://whichpayroll.com/pricing/gusto-pricing" target="_blank">Gusto Pricing 2026: Plans, Tier Gating, and What the Increases Mean for Your Budget</a>
+ · observed 2026-07-27 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> No longer single-sourced: Gusto&#x27;s own help center confirms new customers referred to Remote from May 1, 2026, Remote as employer, existing customers grandfathered.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C053</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Active launch push in the week before 2026-07-27: multiple LinkedIn posts promoting &#x27;Gusto Cofounder&#x27;, an AI-powered business-startup guidance tool (each post 10-13 reactions).</div>
+<blockquote>&ldquo;Gusto Cofounder&rdquo;</blockquote>
+<div class="src"><a href="https://rs.linkedin.com/company/gustohq" target="_blank">Gusto | LinkedIn</a>
+ · observed 2026-07-27 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Measured posts; Cofounder launched June 2, 2026 per PRNewswire, so an active July push is corroborated.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C063</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">On April 23, 2026 Gusto announced its Spring Showcase: nearly 75 product updates spanning payments, benefits, and compliance, including AI features named S Corp Election with AI-Guided Advisory and AI-Powered Benefits Package Optimization plus ChatGPT, Claude, and Slack integrations.</div>
+<blockquote>&ldquo;Gusto Reaches 500,000 Customers and Unveils Nearly 75 New Features for Small Businesses&rdquo;</blockquote>
+<div class="src"><a href="https://www.prnewswire.com/news-releases/gusto-reaches-500-000-customers-and-unveils-nearly-75-new-features-for-small-businesses-302751686.html" target="_blank">Gusto Reaches 500,000 Customers and Unveils Nearly 75 New Features for Small Businesses (PR Newswire, Apr 23, 2026)</a>
+ · observed 2026-07-27 · lane: news</div>
+<div class="vnote"><b>verifier:</b> PR re-fetched: April 23, 2026, ~75 Spring Showcase updates, both AI features named, ChatGPT/Claude/Slack, 500K+.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C069</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">The week of January 23, 2026 Gusto launched a Gusto app inside ChatGPT&#x27;s app directory letting small businesses run payroll and query payroll/business data in natural language — payroll execution initially limited to select customers.</div>
+<blockquote>&ldquo;connect their Gusto account through the Gusto app in ChatGPT and interact with real payroll and business data using natural language&rdquo;</blockquote>
+<div class="src"><a href="https://www.cpapracticeadvisor.com/2026/01/23/gusto-launches-payroll-inside-chatgpt/176791/" target="_blank">Gusto Launches Payroll Inside ChatGPT (CPA Practice Advisor, Jan 23, 2026; quote: CPO Chris Cosgrove)</a>
+ · observed 2026-07-27 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Announced Jan 20, 2026 with Jan 23 trade coverage; select-customer payroll execution and Gusto help-center corroboration check.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C070</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">On April 9, 2026 Gusto announced the acquisition of Mosey, an AI-powered state/local compliance platform, to anchor a forthcoming &#x27;Gusto Business Compliance&#x27; offering — pushing Gusto into the compliance category.</div>
+<blockquote>&ldquo;will become a key part of the upcoming Gusto Business Compliance offering&rdquo;</blockquote>
+<div class="src"><a href="https://www.prnewswire.com/news-releases/gusto-surpasses-1-billion-in-revenue-serving-more-than-500-000-small-businesses-302765484.html" target="_blank">Gusto May 7, 2026 release (acquisition announced Apr 9, 2026; also PRNewswire 302737584 and Axios Pro, Apr 9, 2026)</a>
+ · observed 2026-07-27 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Standalone April 9, 2026 Mosey PR (302737584) plus Axios; Business Compliance tie-in verbatim in re-fetched May 7 release.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C074</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">On June 16, 2026 Gusto released six AI agents (early access, Accountant Partner Program) that do business development FOR CPA firms — website audit, prospecting lists, sales outreach cadences, advisory positioning, expansion pitches, pricing/margin modeling — deepening the accountant distribution channel with free GTM tooling.</div>
+<blockquote>&ldquo;Developing their practice — finding new clients, deepening existing relationships, evolving toward higher-value advisory services — is where firms tell us they need the most support.&rdquo;</blockquote>
+<div class="src"><a href="https://www.accountingtoday.com/news/gusto-releases-ai-agents-for-accounting-firm-development" target="_blank">Gusto releases AI agents for accounting firm development (Accounting Today, Jun 16, 2026; quote: Colleen Oats, head of indirect GTM)</a>
+ · observed 2026-07-27 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Accounting Today and CPA Practice Advisor (June 16, 2026) confirm all six named agents, Early Access, Accountant Partner Program.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="inferred">
+<div class="head"><span class="cid">C078</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Through 2025 Gusto Embedded (the embedded-payroll API partner business) shipped releases expanding partner-servable segments — S-corp support, contractor-only business onboarding, integrated 401(k) via Guideline and Vestwell, and pre-built Xero/QuickBooks Online accounting-sync flows (recap page 403&#x27;d; via search results).</div>
+
+<div class="src"><a href="https://embedded.gusto.com/blog/2025-product-releases/" target="_blank">2025 Product Release Recap (Gusto Embedded blog; via search snippets, page not fetchable)</a>
+ · observed 2026-07-27 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Matches Gusto Embedded&#x27;s documented 2025 release history (S-corp, contractor-only onboarding, Guideline/Vestwell 401(k), Xero/QBO sync).</div>
+</div></section><section><h2>pricing <span class="count">11</span></h2><div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C011</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Primary attack dimension vs Rippling is pricing transparency: the comparison table shows Gusto &#x27;Starting at $49/mo. + $6/mo. per user&#x27; against Rippling &#x27;Starting at $8/mo. per user /No transparent monthly pricing&#x27;; page discloses competitive data &#x27;collected as of July 2025&#x27;</div>
+<blockquote>&ldquo;As opposed to Rippling, we offer simple, transparent plans with no surprise fees. Unlimited payroll runs and automatic tax filings are always included.&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/product/compare/gusto-vs-rippling" target="_blank">Gusto vs Rippling — Why Gusto over Rippling / pricing table</a>
+ · observed 2026-07-27 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Measured table read; Rippling &#x27;$8/mo per user&#x27; starting price matches Rippling&#x27;s own public marketing.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C014</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Pricing is public and flat: $49/mo base + $6/employee/mo, contractor-only plan $35/mo + $6/contractor in active months, with tax filing and unlimited runs included in base</div>
+<blockquote>&ldquo;Gusto offers straightforward monthly plans, with options starting at a monthly base fee of $49, plus an additional $6 per employee per month. If you don&#x27;t have W-2 employees, you can use Gusto to pay your contractors for just $35/month plus $6/month per contractor (in the months you pay them).&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/product/compare/gusto-vs-rippling" target="_blank">Gusto vs Rippling — Comparison details: Pricing</a>
+ · observed 2026-07-27 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Measured pricing quote; matches whichpayroll re-fetch exactly.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C036</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto sells three public good-better-best tiers billed as base fee + per-person per month: Simple $49/mo + $6/person, Plus $80/mo + $12/person, Premium $180/mo + $22/person. Identical numbers corroborated across three independently fetched July-2026-current teardowns (hireinsouth, whichpayroll, workstream.us).</div>
+<blockquote>&ldquo;$49/month + $6 per person&rdquo;</blockquote>
+<div class="src"><a href="https://www.hireinsouth.com/post/gusto-pricing" target="_blank">Gusto Pricing 2026: Plans, Fees &amp; Real Monthly Costs | South</a>
+ · observed 2026-07-27 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Re-fetched whichpayroll matches all three tiers; Simple also corroborated by measured C014.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C038</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">A separate Contractor-Only SKU is priced at $35/mo base + $6 per contractor per month, and Gusto is running a limited-time acquisition promo waiving the base fee for the first six months.</div>
+<blockquote>&ldquo;$35/month plus $6 per contractor, with a limited-time $0 base price offer for the first six months&rdquo;</blockquote>
+<div class="src"><a href="https://www.workstream.us/blog/gusto-pricing" target="_blank">Gusto Pricing: How Much Does Gusto Really Cost in 2026 (published June 17, 2026)</a>
+ · observed 2026-07-27 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> $35+$6 re-verified; 6-month base-waiver matches Gusto&#x27;s long-running contractor promo.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C039</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto raised the Simple plan base price from $40 to $49/mo (a 23% increase) effective March 2026, per multiple 2026 pricing roundups; one earlier search snippet dated the same $40-to-$49 move to March 2025, so the exact effective date carries a minor source conflict, but the current $49 price is confirmed in all three fetched teardowns.</div>
+<blockquote>&ldquo;Gusto raised its Simple plan pricing from $40 to $49 per month in March 2026. This represents a 23% increase.&rdquo;</blockquote>
+<div class="src"><a href="https://whichpayroll.com/pricing/gusto-pricing" target="_blank">Gusto Pricing 2026: Plans, Tier Gating, and What the Increases Mean for Your Budget</a>
+ · observed 2026-07-27 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Re-search fixes it: $40 to $49 effective March 1, 2026 (23%); March-2025 snippet was noise.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C040</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto&#x27;s Employer of Record (EOR) price for international employees increased from $599 to $699 per employee per month effective March 15, 2026.</div>
+<blockquote>&ldquo;the Employer of Record (EOR) service for international employees also increased from $599 to $699 per employee per month effective March 15, 2026&rdquo;</blockquote>
+<div class="src"><a href="https://rivermate.com/blog/gusto-pricing" target="_blank">Gusto Pricing Breakdown: A Complete Guide [2026]</a>
+ · observed 2026-07-27 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Multiple 2026 sources corroborate $599 to $699 effective March 15, 2026.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C042</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Multi-state payroll is gated out of Simple (whose key feature is single-state payroll) into Plus: hiring one employee in a second state forces the base fee from $49 to $80/mo and doubles the per-employee rate from $6 to $12 PEPM across the whole headcount. Corroborated by both whichpayroll and hireinsouth gating breakdowns; direct per-employee-math campaign material.</div>
+<blockquote>&ldquo;Single-state payroll&rdquo;</blockquote>
+<div class="src"><a href="https://whichpayroll.com/pricing/gusto-pricing" target="_blank">Gusto Pricing 2026: Plans, Tier Gating, and What the Increases Mean for Your Budget</a>
+ · observed 2026-07-27 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Single-state-on-Simple / multi-state-on-Plus re-verified; fee math follows confirmed tier prices.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C043</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Premium ($180/mo + $22/person) is the gate for performance reviews, a dedicated CSM, dedicated/phone support, compliance alerts, and access to certified HR experts; there is no contact-sales gate on core payroll and no public tier above Premium.</div>
+<blockquote>&ldquo;Performance reviews, CSM&rdquo;</blockquote>
+<div class="src"><a href="https://whichpayroll.com/pricing/gusto-pricing" target="_blank">Gusto Pricing 2026: Plans, Tier Gating, and What the Increases Mean for Your Budget</a>
+ · observed 2026-07-27 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Premium gates (performance reviews, CSM, phone support) re-verified; no public tier above Premium found.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C044</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Worked per-employee math from third-party teardowns: 10 employees on Simple = $109/mo ($10.90 effective per employee); at 30 employees Simple = $229/mo ($2,748/yr), Plus = $440/mo ($5,280/yr), Premium = $840/mo ($10,080/yr). Usable directly for Rippling-vs-Gusto cost comparisons.</div>
+<blockquote>&ldquo;$49 base fee + $60 in per-person fees = $109/month&rdquo;</blockquote>
+<div class="src"><a href="https://www.hireinsouth.com/post/gusto-pricing" target="_blank">Gusto Pricing 2026: Plans, Fees &amp; Real Monthly Costs | South</a>
+ · observed 2026-07-27 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Re-fetch confirms $229/$440 at 30 employees; $109 and $840 arithmetic check.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C045</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Hidden costs sit outside tier prices as add-ons: international contractor payment fees ($5/payment to US bank; international wires minimum $15 then 1%-1.5% plus FX margin), state tax registration (price varies by state), next-day/same-day/instant pay priced per payroll, Time &amp; Attendance Plus (extra on Simple), priority support upgrade, health-benefits admin billed monthly per eligible employee, and workers&#x27; comp administration.</div>
+<blockquote>&ldquo;$5/payment (US bank); intl wire min $15, then 1%-1.5% + FX margin&rdquo;</blockquote>
+<div class="src"><a href="https://whichpayroll.com/pricing/gusto-pricing" target="_blank">Gusto Pricing 2026: Plans, Tier Gating, and What the Increases Mean for Your Budget</a>
+ · observed 2026-07-27 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> International payment fees re-verified verbatim; remaining add-on list consistent with Gusto disclosures.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C046</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Free motion is not a time-boxed trial: Gusto markets free account setup with no payment until the first payroll is actually run (its own /product/payroll/free-payroll-software-setup page), plus a separate Time &amp; Attendance Plus free-trial promotion documented at gusto.com/legal/terms/time.</div>
+<blockquote>&ldquo;Gusto&#x27;s payroll software is completely free until you hit the &quot;Run Payroll&quot; button&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/product/payroll/free-payroll-software-setup" target="_blank">Free Payroll Trial &amp; Setup in Minutes | Gusto</a>
+ · observed 2026-07-27 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Gusto&#x27;s own free-setup page quote (403-blocked to verifier); consistent with measured free-account CTA.</div>
+</div></section><section><h2>ads <span class="count">7</span></h2><div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C020</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Gusto is running a substantial national TV program: iSpot catalogs 49 creative assets with 3,498 national airings in the June 27–July 27, 2026 window (airing rank #250, spend rank #1,102).</div>
+<blockquote>&ldquo;National airings: 3,498 total; Spend rank: #1,102; Airing rank: #250&rdquo;</blockquote>
+<div class="src"><a href="https://www.ispot.tv/brands/f2T/gusto" target="_blank">Gusto TV Commercials - iSpot</a>
+ · observed 2026-07-27 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Re-fetched iSpot: 49 creatives, 3,498 airings, ranks #250/#1,102 match exactly.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C021</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Gusto&#x27;s current TV airings are dominated by community-sports-sponsorship brand spots: &#x27;Oakland Roots: Since Day One&#x27; (1,773 airings) plus &#x27;Oakland Roots&#x27; (901 airings) account for roughly 76% of the 3,498 airings in the last 30 days, with &#x27;Oakland Ballers: Community&#x27; (191) and an &#x27;Olympics: Supporting USA Luge&#x27; spot also in rotation.</div>
+<blockquote>&ldquo;Oakland Roots: Since Day One (1,773 airings); Oakland Roots (901 airings); Oakland Ballers: Community (191 airings); Olympics: Supporting USA Luge&rdquo;</blockquote>
+<div class="src"><a href="https://www.ispot.tv/brands/f2T/gusto" target="_blank">Gusto TV Commercials - iSpot</a>
+ · observed 2026-07-27 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Re-fetched airings match; (1,773+901)/3,498 = 76.4%.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C022</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Gusto bakes a 50%-off-for-six-months promotional offer directly into TV creative variants, per iSpot creative titles.</div>
+<blockquote>&ldquo;Three Extra Weeks: 50% Off Six Months&rdquo;</blockquote>
+<div class="src"><a href="https://www.ispot.tv/brands/f2T/gusto" target="_blank">Gusto TV Commercials - iSpot</a>
+ · observed 2026-07-27 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> 50%-off creative titles corroborated on iSpot re-fetch.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C024</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">The current &#x27;Looking Cool&#x27; 30-second TV spot carries &#x27;Get started for free&#x27; as its promotional offer, tagged under Business Supplies &amp; Services.</div>
+<blockquote>&ldquo;Get started for free&rdquo;</blockquote>
+<div class="src"><a href="https://www.ispot.tv/ad/B1rT/gusto-looking-cool" target="_blank">Gusto TV Spot, &#x27;Looking Cool&#x27; - iSpot</a>
+ · observed 2026-07-27 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Spot exists on re-fetched brand page (139 airings); offer field from researcher&#x27;s measured ad-page fetch.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C025</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto&#x27;s 2026 brand-storytelling campaign &#x27;The Team Behind the Team&#x27; features community-owned Oakland Roots SC, narrated by club co-founder/CMO Edreece Arghandiwal, positioning Gusto as the people-platform behind the club&#x27;s operations.</div>
+<blockquote>&ldquo;The Team Behind the Team | Oakland Roots x Gusto&rdquo;</blockquote>
+<div class="src"><a href="https://abancommercials.com/gusto/oakland-roots-2026-team-behind-team-communitydriven-football-story-commercial/296552/" target="_blank">gusto oakland roots (2026) team behind team community-driven football story</a>
+ · observed 2026-07-27 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Roots campaign dominance re-verified via iSpot; campaign title/narrator detail rests on proxy source.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C027</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">A documented Gusto Facebook ad uses the headline &#x27;HR for Remote Teams&#x27; with primary text &#x27;Your HR toolbox just got bigger. Now go build an even stronger team!&#x27; and a &#x27;Sign up&#x27; CTA — the identity keyword &#x27;Remote Teams&#x27; filtering for distributed-company buyers.</div>
+<blockquote>&ldquo;Your HR toolbox just got bigger. Now go build an even stronger team!&rdquo;</blockquote>
+<div class="src"><a href="https://adkit.so/resources/ads-examples/facebook-ad-examples" target="_blank">15 Proven Facebook Ad Examples to Copy (With Breakdowns)</a>
+ · observed 2026-07-27 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Single proxy gallery source; internally consistent, not re-verifiable within budget.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C030</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">MediaRadar&#x27;s advertiser profile pegs Gusto&#x27;s ad spend at under $100 million across digital and national TV in the last year, spread across 250+ media properties — a real multi-channel brand+performance budget.</div>
+<blockquote>&ldquo;Gusto spent under $100 million on advertising in digital and national TV in the last year, and advertised on over 250 different Media Properties across multiple formats.&rdquo;</blockquote>
+<div class="src"><a href="https://advertisers.mediaradar.com/gusto-advertising-profile" target="_blank">Gusto | Advertising Profile | MediaRadar</a>
+ · observed 2026-07-27 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Standard MediaRadar boilerplate band; coarse &#x27;under $100M&#x27; bound, source-plausible.</div>
+</div></section><section><h2>social <span class="count">4</span></h2><div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C049</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Gusto&#x27;s LinkedIn company page (handle: gustohq) shows 161,275 followers and 4,536 employees listed, read 2026-07-27 via regional mirror.</div>
+<blockquote>&ldquo;161,275 followers&rdquo;</blockquote>
+<div class="src"><a href="https://rs.linkedin.com/company/gustohq" target="_blank">Gusto | LinkedIn</a>
+ · observed 2026-07-27 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Measured LinkedIn mirror read; counts plausible for Gusto.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C051</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">LinkedIn cadence is near-daily (5+ posts in the last ~6 days) with four visible pillars: SMB-founder humor/motivation (&#x27;3AM Startup Ideas&#x27;), entrepreneur customer spotlights (founder Natalie Barbu of Rella), awards amplification (CNBC fintech list), and AI product launch promotion.</div>
+<blockquote>&ldquo;You built a team from a dream. That&#x27;s gotta be something, all right.&rdquo;</blockquote>
+<div class="src"><a href="https://rs.linkedin.com/company/gustohq" target="_blank">Gusto | LinkedIn</a>
+ · observed 2026-07-27 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Measured post sample; pillars match the confirmed Cofounder/awards activity.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="inferred">
+<div class="head"><span class="cid">C052</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Engagement is thin relative to audience: typical posts draw 10-15 reactions against 161K followers (~0.01% engagement); the outlier was an awards post (CNBC World&#x27;s Top Fintech Companies 2026) at 102 reactions — broadcast channel, not a community.</div>
+
+<div class="src"><a href="https://rs.linkedin.com/company/gustohq" target="_blank">Gusto | LinkedIn</a>
+ · observed 2026-07-27 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Measured engagement math (10-15 reactions vs 161K followers).</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C054</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">The Cofounder push extends to YouTube with a produced demo positioning AI-teammate payroll automation.</div>
+<blockquote>&ldquo;Gusto Cofounder Demo: Automate Payroll With Your AI Teammate&rdquo;</blockquote>
+<div class="src"><a href="https://www.youtube.com/watch?v=9E2RhRULyBY" target="_blank">Gusto Cofounder Demo: Automate Payroll With Your AI Teammate - YouTube</a>
+ · observed 2026-07-27 · lane: social</div>
+<div class="vnote"><b>verifier:</b> YouTube title matches official &#x27;AI teammate&#x27; launch language exactly; proxy source.</div>
+</div></section><section><h2>news <span class="count">7</span></h2><div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C056</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">CEO Josh Reeves runs a deliberate podcast/broadcast thought-leadership circuit — CNBC Fortt Knox update May 2026 (crossing 500,000 customers, $1B trailing revenue), PearX Speaker Series Sept 2025, Product Market Fit Show early 2025 — pushing a consistent narrative: new-business formations at ~2x pandemic levels and AI enabling one-person companies.</div>
+<blockquote>&ldquo;Josh Reeves, Gusto CEO: A Fortt Knox Update&rdquo;</blockquote>
+<div class="src"><a href="https://www.cnbc.com/video/2026/05/11/josh-reeves-gusto-ceo-a-fortt-knox-update.html" target="_blank">Josh Reeves, Gusto CEO: A Fortt Knox Update - CNBC</a>
+ · observed 2026-07-27 · lane: social</div>
+<div class="vnote"><b>verifier:</b> CNBC URL/date coherent and talking points match confirmed May 2026 milestones; circuit details unverified.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C057</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">No traditional CMO surfaced in searches; GTM is led by Chief Commercial Officer Ritu Khanna (ex-Shopify, joined April 2025), and HubSpot CMO Kipp Bodnar joined Gusto&#x27;s board the same month — a marketing-muscle signal at board level. Announced via @GustoHQ on X.</div>
+<blockquote>&ldquo;Big news at Gusto: We&#x27;re welcoming Ritu Khanna as our new Chief Commercial Officer and Kipp Bodnar (@HubSpot CMO) to our Board of Directors!&rdquo;</blockquote>
+<div class="src"><a href="https://x.com/GustoHQ/status/1917627778758824420" target="_blank">Gusto on X</a>
+ · observed 2026-07-27 · lane: social</div>
+<div class="vnote"><b>verifier:</b> X-post snowflake decodes to 2025-04-30; Khanna ex-Shopify and Kornweibel ex-CMO-now-CRO match records.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C065</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">On May 7, 2026 Gusto announced it surpassed $1 billion in trailing-12-month revenue (crossed in February 2026 per Fortune), claiming five consecutive quarters of ARR acceleration and years of cash-flow positivity.</div>
+<blockquote>&ldquo;surpassed $1 billion in trailing 12-month revenue&rdquo;</blockquote>
+<div class="src"><a href="https://www.prnewswire.com/news-releases/gusto-surpasses-1-billion-in-revenue-serving-more-than-500-000-small-businesses-302765484.html" target="_blank">Gusto Surpasses $1 Billion in Revenue, Serving More Than 500,000 Small Businesses (PR Newswire, May 7, 2026)</a>
+ · observed 2026-07-27 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Re-fetched: $1B TTM, five quarters ARR acceleration, years cash-flow positive; Fortune&#x27;s February timing not independently checked.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C067</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">TechCrunch&#x27;s May 7, 2026 coverage frames Gusto as IPO-adjacent — noting revenue parity with Rippling ($1B ARR, $16.8B valuation, May 2025) and Deel ($1B ARR, $17.3B, Oct 2025) at roughly half their valuations — while Gusto said it had nothing to share on IPO timing and TechCrunch called a 2026 debut iffy in a frosty IPO market.</div>
+<blockquote>&ldquo;Given its relatively modest valuation compared to its revenue, Gusto is well-positioned for another fundraise, or even an IPO, at a higher valuation.&rdquo;</blockquote>
+<div class="src"><a href="https://techcrunch.com/2026/05/07/gusto-hits-1b-revenue-a-figure-that-brings-it-closer-to-public-markets/" target="_blank">Gusto hits $1B revenue, a figure that brings it closer to public markets (TechCrunch, May 7, 2026)</a>
+ · observed 2026-07-27 · lane: news</div>
+<div class="vnote"><b>verifier:</b> TechCrunch re-fetched: Rippling/Deel figures, frosty-IPO framing, and the quoted sentence all present.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="inferred">
+<div class="head"><span class="cid">C068</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">In June 2025 Gusto ran a secondary tender offer at a $9.3B valuation — reported &gt;$200M of shareholder liquidity led by Ontario Teachers&#x27; Venture Growth (per Sacra/PitchBook search results) — and TechCrunch (May 2026) reports the valuation has been unchanged since early 2022; no primary raise since.</div>
+
+<div class="src"><a href="https://techcrunch.com/2026/05/07/gusto-hits-1b-revenue-a-figure-that-brings-it-closer-to-public-markets/" target="_blank">TechCrunch (May 7, 2026) + Sacra/PitchBook search results</a>
+ · observed 2026-07-27 · lane: news</div>
+<div class="vnote"><b>verifier:</b> TechCrunch confirms June 2025 tender at $9.3B unchanged since early 2022, but sizes it at $200M (not &gt;$200M) and OTVG lead rests on Sacra/PitchBook only.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="inferred">
+<div class="head"><span class="cid">C071</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto acquired 401(k) provider Guideline for approximately $600 million (announced November 6, 2025 per Tracxn; TechCrunch May 2026 cites ~$600M) — its largest known acquisition, converting a longtime embedded retirement partner into an owned product line.</div>
+
+<div class="src"><a href="https://techcrunch.com/2026/05/07/gusto-hits-1b-revenue-a-figure-that-brings-it-closer-to-public-markets/" target="_blank">TechCrunch (May 7, 2026) + Tracxn acquisitions list</a>
+ · observed 2026-07-27 · lane: news</div>
+<div class="vnote"><b>verifier:</b> ~$600M confirmed (TechCrunch sources), but deal was announced Aug 27, 2025 and completed/launched as Gusto 401(k) early Nov 2025 — ledger&#x27;s &#x27;announced November 6&#x27; conflates completion with announcement.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C077</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Employee-forum discussions on Blind (thread activity dated January 25, 2026) reference layoffs at Gusto amid a heavy internal AI push; no mainstream press coverage of any 2025-2026 Gusto layoff was found — weak, unconfirmed headwind signal.</div>
+
+<div class="src"><a href="https://www.teamblind.com/company/Gusto/posts/gusto-layoffs" target="_blank">Gusto Layoffs Discussions (Blind, activity Jan 2026)</a>
+ · observed 2026-07-27 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Blind chatter only; no press corroboration found — correctly hedged as weak signal.</div>
+</div></section><section><h2>customers <span class="count">5</span></h2><div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C006</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Customer-count claim is 500,000+ &#x27;small and medium-sized businesses&#x27; (homepage) / &#x27;more than 500,000 businesses nationwide&#x27; (About) — their own figure, uncorroborated</div>
+<blockquote>&ldquo;Join 500,000+ small and medium-sized businesses that take care of their people with Gusto.&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/" target="_blank">Gusto homepage subheadline</a>
+ · observed 2026-07-27 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> 500K+ self-claim verbatim; repeated in April/May 2026 PRs re-fetched, all Gusto-sourced.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C016</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Customer proof skews micro-SMB: every featured customer story lists 7-61 employees (Handlebar Cyclery 7, Sleep Reset 11, Spiked Spin 15, Kids Atelier 61); case-study industries are accounting firms, dental/health practices, law firms, breweries, food and consumer goods — zero enterprise or tech-scale logos</div>
+<blockquote>&ldquo;Spiked Spin 15 employees / Sleep Reset 11 employees / Kids Atelier 61 employees / Handlebar Cyclery 7 employees&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/customers" target="_blank">Customer stories | Gusto</a>
+ · observed 2026-07-27 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Measured customer-story reads; 7-61 employee counts verbatim.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C058</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">G2 review mass is large and current: ~12,848 reviews at 4.6 stars across Gusto&#x27;s G2 seller profile, and third-party roundups cite Gusto ranked #1 on G2&#x27;s Highest Satisfaction Products list for 2026 — heavy sustained review flow, a strong customer-volume proxy (G2 page itself not fetchable).</div>
+<blockquote>&ldquo;Gusto Products | Read 12848 Reviews on G2&rdquo;</blockquote>
+<div class="src"><a href="https://www.g2.com/sellers/gusto" target="_blank">Gusto Products | Read 12848 Reviews on G2</a>
+ · observed 2026-07-27 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Review count unfetchable; #1 Highest Satisfaction 2026 consistent with the measured on-site badge (C004).</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C059</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto operationalizes review-site social proof on its own domain, maintaining dedicated indexed pages amplifying its G2 reviews (gusto.com/product/payroll/g2-reviews) — review velocity is a deliberate marketing asset, not passive.</div>
+<blockquote>&ldquo;Gusto Reviews &amp;amp; Ratings on G2 | Trusted by Verified Customers&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/product/payroll/g2-reviews" target="_blank">Gusto Reviews &amp;amp; Ratings on G2 | Trusted by Verified Customers</a>
+ · observed 2026-07-27 · lane: social</div>
+<div class="vnote"><b>verifier:</b> SERP-evidenced own-domain G2 page; fits Gusto&#x27;s badge-marketing pattern.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C064</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Gusto claims 500,000+ small-business customers as of April 2026 and says it added roughly 50,000 net-new customers in the quarter preceding its May 7, 2026 announcement.</div>
+<blockquote>&ldquo;added roughly 50,000 new customers last quarter alone&rdquo;</blockquote>
+<div class="src"><a href="https://www.prnewswire.com/news-releases/gusto-surpasses-1-billion-in-revenue-serving-more-than-500-000-small-businesses-302765484.html" target="_blank">Gusto Surpasses $1 Billion in Revenue, Serving More Than 500,000 Small Businesses (PR Newswire, May 7, 2026)</a>
+ · observed 2026-07-27 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Re-fetched release: &#x27;more than 500,000&#x27; and &#x27;roughly 50,000 new customers last quarter alone&#x27; verbatim.</div>
+</div></section><section><h2>other <span class="count">6</span></h2><div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C026</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto is a named sponsor of the Oakland Ballers (MLB-partnered Pioneer League baseball), in a sponsor portfolio alongside Google and Columbia Bank.</div>
+<blockquote>&ldquo;The Oakland Ballers&#x27; sponsorship portfolio expanded to include Google, Gusto, and Columbia Bank.&rdquo;</blockquote>
+<div class="src"><a href="https://invest.oaklandballers.com/" target="_blank">Invest in Oakland Ballers | The Next Great Sports Business</a>
+ · observed 2026-07-27 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Sponsorship consistent with verified Ballers TV spots; Google/Columbia Bank portfolio detail unverified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C035</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto has no footprint in public email-marketing archives — Milled&#x27;s index (via site:milled.com search) contains zero GustoHQ payroll emails (only unrelated &#x27;Dolce Gusto&#x27; coffee brands) and ReallyGoodEmails has no Gusto brand page (404) — so lifecycle email cadence cannot be assessed from public sources; inferred from those two dry archive checks.</div>
+
+<div class="src"><a href="https://milled.com/search?q=gusto" target="_blank">Milled search - gusto</a>
+ · observed 2026-07-27 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Two dry archive checks support only the scoped absence claim; correctly framed as inference.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C060</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">The accountant-partner channel has a full public event/community stack: &#x27;Gusto Next&#x27; is an annual conference for accountants with keynotes and breakout sessions, plus a Partner Advisory Council recruiting its third cohort in 2025 and a CPE-events bulletin board for partners.</div>
+<blockquote>&ldquo;Gusto Next – The Future of Accounting&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/partner-resources/gusto-next-the-future-of-accounting" target="_blank">Gusto Next – The Future of Accounting | Gusto</a>
+ · observed 2026-07-27 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Gusto Next is a real annual accountant event; PAC third-cohort and CPE-board details unverified.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C061</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto runs a People Advisory Certification program to train accountant partners into an advisory sales channel, covered by trade press (Accounting Today).</div>
+<blockquote>&ldquo;Gusto introduces People Advisory Certification program for accountant partners&rdquo;</blockquote>
+<div class="src"><a href="https://www.accountingtoday.com/news/gusto-introduces-people-advisory-certification-program-for-accountant-partners" target="_blank">Gusto introduces People Advisory Certification program for accountant partners | Accounting Today</a>
+ · observed 2026-07-27 · lane: social</div>
+<div class="vnote"><b>verifier:</b> People Advisory Certification is a real, trade-press-covered Gusto partner program.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C062</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Gusto held &#x27;Gusto Showcase 2025&#x27; on Sept 16, 2025 — an owned annual product/community event convening small businesses, accountants and partners, with CEO Josh Reeves&#x27;s keynote published to YouTube as evergreen content.</div>
+<blockquote>&ldquo;Gusto Showcase 2025: A Day of Discovery, Connection, and Innovation&rdquo;</blockquote>
+<div class="src"><a href="https://gusto.com/company-news/showcase-sept-2025" target="_blank">Gusto Showcase 2025: A Day of Discovery, Connection, and Innovation | Gusto</a>
+ · observed 2026-07-27 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Consistent with Gusto&#x27;s Showcase cadence (Spring Showcase April 2026 confirmed); Sept 16 date not re-verified.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="inferred">
+<div class="head"><span class="cid">C075</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">In April 2025 Gusto announced Ritu Khanna as Chief Commercial Officer (commercial strategy, growth, partnerships, monetization) and added HubSpot CMO Kipp Bodnar to its board; CRO Tolithia Kornweibel is a former Gusto CMO — a GTM-heavy leadership build-out (gusto.com announcement page 403&#x27;d, not fetched).</div>
+
+<div class="src"><a href="https://gusto.com/company-news/khanna-bodnar" target="_blank">Welcome to Gusto, Ritu Khanna and Kipp Bodnar (Gusto company news, ~Apr 2025; via search results)</a>
+ · observed 2026-07-27 · lane: news</div>
+<div class="vnote"><b>verifier:</b> April 2025 Khanna/Bodnar confirmed via X-post timestamp (C057); Kornweibel ex-CMO checks; 403 honestly disclosed.</div>
+</div></section>
+<section><h2>post-eval corrections <span class="count">458</span></h2><p class="note">The eval harness catching things is the audit trail of it working.</p><ul class="corr"><li>C</li><li>0</li><li>1</li><li>8</li><li>/</li><li>C</li><li>0</li><li>5</li><li>2</li><li>/</li><li>C</li><li>0</li><li>6</li><li>8</li><li>/</li><li>C</li><li>0</li><li>7</li><li>1</li><li>/</li><li>C</li><li>0</li><li>7</li><li>5</li><li> </li><li>r</li><li>e</li><li>-</li><li>g</li><li>r</li><li>a</li><li>d</li><li>e</li><li>d</li><li> </li><li>t</li><li>o</li><li> </li><li>i</li><li>n</li><li>f</li><li>e</li><li>r</li><li>r</li><li>e</li><li>d</li><li> </li><li>(</li><li>a</li><li>n</li><li>a</li><li>l</li><li>y</li><li>s</li><li>t</li><li> </li><li>s</li><li>y</li><li>n</li><li>t</li><li>h</li><li>e</li><li>s</li><li>e</li><li>s</li><li>,</li><li> </li><li>n</li><li>o</li><li> </li><li>v</li><li>e</li><li>r</li><li>b</li><li>a</li><li>t</li><li>i</li><li>m</li><li> </li><li>q</li><li>u</li><li>o</li><li>t</li><li>e</li><li>)</li><li>;</li><li> </li><li>C</li><li>0</li><li>2</li><li>2</li><li>/</li><li>C</li><li>0</li><li>2</li><li>3</li><li> </li><li>q</li><li>u</li><li>o</li><li>t</li><li>e</li><li>s</li><li> </li><li>r</li><li>e</li><li>d</li><li>u</li><li>c</li><li>e</li><li>d</li><li> </li><li>t</li><li>o</li><li> </li><li>s</li><li>i</li><li>n</li><li>g</li><li>l</li><li>e</li><li> </li><li>v</li><li>e</li><li>r</li><li>b</li><li>a</li><li>t</li><li>i</li><li>m</li><li> </li><li>c</li><li>r</li><li>e</li><li>a</li><li>t</li><li>i</li><li>v</li><li>e</li><li> </li><li>t</li><li>i</li><li>t</li><li>l</li><li>e</li><li>s</li><li> </li><li>(</li><li>w</li><li>e</li><li>r</li><li>e</li><li> </li><li>c</li><li>o</li><li>m</li><li>p</li><li>o</li><li>s</li><li>i</li><li>t</li><li>e</li><li> </li><li>l</li><li>i</li><li>s</li><li>t</li><li>s</li><li>)</li><li>.</li><li> </li><li>C</li><li>a</li><li>u</li><li>g</li><li>h</li><li>t</li><li> </li><li>b</li><li>y</li><li> </li><li>e</li><li>v</li><li>a</li><li>l</li><li>s</li><li>/</li><li>r</li><li>u</li><li>n</li><li>_</li><li>e</li><li>v</li><li>a</li><li>l</li><li>s</li><li>.</li><li>p</li><li>y</li><li> </li><li>s</li><li>t</li><li>r</li><li>u</li><li>c</li><li>t</li><li>u</li><li>r</li><li>a</li><li>l</li><li> </li><li>l</li><li>a</li><li>y</li><li>e</li><li>r</li><li>.</li><li> </li><li>S</li><li>e</li><li>c</li><li>o</li><li>n</li><li>d</li><li> </li><li>p</li><li>a</li><li>s</li><li>s</li><li>:</li><li> </li><li>C</li><li>0</li><li>7</li><li>6</li><li>/</li><li>C</li><li>0</li><li>7</li><li>7</li><li>/</li><li>C</li><li>0</li><li>7</li><li>8</li><li> </li><li>l</li><li>i</li><li>k</li><li>e</li><li>w</li><li>i</li><li>s</li><li>e</li><li> </li><li>r</li><li>e</li><li>-</li><li>g</li><li>r</li><li>a</li><li>d</li><li>e</li><li>d</li><li> </li><li>i</li><li>n</li><li>f</li><li>e</li><li>r</li><li>r</li><li>e</li><li>d</li><li>.</li><li> </li><li>J</li><li>u</li><li>d</li><li>g</li><li>e</li><li> </li><li>p</li><li>a</li><li>s</li><li>s</li><li>:</li><li> </li><li>C</li><li>0</li><li>2</li><li>3</li><li> </li><li>c</li><li>l</li><li>a</li><li>i</li><li>m</li><li> </li><li>t</li><li>e</li><li>x</li><li>t</li><li> </li><li>e</li><li>x</li><li>p</li><li>a</li><li>n</li><li>d</li><li>e</li><li>d</li><li> </li><li>t</li><li>o</li><li> </li><li>e</li><li>n</li><li>u</li><li>m</li><li>e</li><li>r</li><li>a</li><li>t</li><li>e</li><li> </li><li>t</li><li>i</li><li>t</li><li>l</li><li>e</li><li>s</li><li> </li><li>(</li><li>q</li><li>u</li><li>o</li><li>t</li><li>e</li><li> </li><li>s</li><li>t</li><li>a</li><li>y</li><li>s</li><li> </li><li>s</li><li>i</li><li>n</li><li>g</li><li>l</li><li>e</li><li> </li><li>v</li><li>e</li><li>r</li><li>b</li><li>a</li><li>t</li><li>i</li><li>m</li><li> </li><li>t</li><li>i</li><li>t</li><li>l</li><li>e</li><li>)</li><li>;</li><li> </li><li>b</li><li>r</li><li>i</li><li>e</li><li>f</li><li> </li><li>h</li><li>e</li><li>d</li><li>g</li><li>e</li><li>d</li><li> </li><li>2</li><li> </li><li>i</li><li>n</li><li>f</li><li>e</li><li>r</li><li>r</li><li>e</li><li>d</li><li> </li><li>T</li><li>L</li><li>;</li><li>D</li><li>R</li><li> </li><li>l</li><li>i</li><li>n</li><li>e</li><li>s</li><li>,</li><li> </li><li>a</li><li>d</li><li>d</li><li>e</li><li>d</li><li> </li><li>v</li><li>e</li><li>r</li><li>i</li><li>f</li><li>y</li><li>+</li><li>l</li><li>e</li><li>g</li><li>a</li><li>l</li><li> </li><li>g</li><li>a</li><li>t</li><li>e</li><li>s</li><li> </li><li>a</li><li>n</li><li>d</li><li> </li><li>K</li><li>P</li><li>I</li><li>s</li><li> </li><li>t</li><li>o</li><li> </li><li>c</li><li>a</li><li>m</li><li>p</li><li>a</li><li>i</li><li>g</li><li>n</li><li> </li><li>p</li><li>l</li><li>a</li><li>y</li><li>s</li><li>.</li></ul></section>
+<footer>Machine-readable twin: the claims JSON in the same folder. Grades — measured: read from a fetched page ·
+self-claimed: the competitor says so · proxy: third-party sourced · inferred: analyst read with basis stated.</footer>
+<script>
+document.getElementById('filters').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#filters button').forEach(x => x.classList.toggle('on', x === b));
+  const f = b.dataset.f;
+  document.querySelectorAll('.claim').forEach(c => {
+    let show = f === 'all'
+      || (f === 'v:flagged' && ['unsupported','contradicted'].includes(c.dataset.v))
+      || (f.startsWith('v:') && c.dataset.v === f.slice(2))
+      || (f.startsWith('e:') && c.dataset.e === f.slice(2));
+    c.classList.toggle('hidden', !show);
+  });
+  document.querySelectorAll('section').forEach(s => {
+    const any = s.querySelectorAll('.claim:not(.hidden)').length || !s.querySelector('.claim');
+    s.style.display = any ? '' : 'none';
+  });
+});
+</script>
+</body></html>

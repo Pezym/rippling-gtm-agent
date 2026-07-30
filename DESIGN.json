@@ -1,0 +1,208 @@
+{
+  "title": "Pranav's GTM Agent - design rationale",
+  "purpose": "Machine-readable companion to the README: why the agent is shaped this way, what it runs on, and how it grades itself. Written against the five questions any evaluation of an agent like this asks.",
+  "generated": "2026-07-29",
+
+  "evaluation_map": {
+    "does_the_agent_work": {
+      "claim": "Point it at any competitor in or adjacent to Rippling's space and it produces an evidence-graded brief plus a claims ledger where every quote re-verifies against the live web.",
+      "proof": [
+        "outputs/ holds six eval-passed audits: Gusto, BILL (x2), Deel, Ramp, Justworks, BambooHR",
+        "Deel run: 43/43 measured quotes re-found verbatim on live pages by the grounding checker",
+        "LLM judge (a 'demanding Rippling VP of Growth' rubric) scored the Gusto, BILL and Deel briefs 5/5 overall",
+        "Two research rounds per audit are typical; the master self-corrected a wrong round-1 conclusion on Deel after round-2 evidence contradicted it"
+      ]
+    },
+    "architecture_quality": {
+      "claim": "A real decision-making loop, not a pipeline: the master chooses lanes per competitor, sharpens per-researcher focus, routes failures, decides when a second round is worth it, and declines work that will not change conclusions.",
+      "proof": [
+        "Observed live: master declined a third research round on Deel stating no strategic conclusion was waiting on more evidence",
+        "Goal-discovery intake: before spending, it asks (with defaults) what the audit feeds, which product motion matters, and which hypotheses to pressure-test - answers become per-lane focus notes",
+        "Checkpoint walk: research runs fully parallel, then findings are presented as five interactive stops where the user can dig into the live ledger before the report exists"
+      ]
+    },
+    "tool_usage": {
+      "claim": "Right tool per job, and every source failure is routed, never surfaced as an error or silently swallowed.",
+      "proof": [
+        "Each ads researcher works a four-tier source ladder (official ad libraries -> ad-spy aggregators -> ad landing pages -> pixel/traffic/hiring signals) and drops down it automatically when walled",
+        "Coverage gaps are disclosed exactly once, honestly, in the brief's section 8 - with the fallback that was used",
+        "Live example: Meta Ad Library renders empty to automated fetches; the run recorded it, fell back to third-party libraries, and a rendered-browser retry later captured the measured creative set"
+      ]
+    },
+    "output_quality": {
+      "claim": "The brief is campaign-ready, and section 7 (Rippling gaps and opportunities) is anchored to cited claims rather than generic advice.",
+      "proof": [
+        "Structural eval requires >= 5 citations inside the Rippling section alone; recent runs carry 60+",
+        "Section 7 pairs declared strategy vs actual buyer demand (what their ads say vs what buyers complain about), names segments and channels, ends with a citation-anchored kill sheet",
+        "Every claim carries a verbatim quote, URL, timestamp, evidence grade, and verification state; the claims ledger ships as JSON plus a filterable HTML report"
+      ]
+    },
+    "decisions_and_tradeoffs": {
+      "claim": "Every major choice below records the tradeoff accepted alongside the reason.",
+      "proof": ["architecture_decisions[]", "tool_and_model_choices[]", "eval_system.track_record"]
+    }
+  },
+
+  "architecture_decisions": [
+    {
+      "decision": "Hand-written agent loop, no framework",
+      "why": "The agentic loop IS the product. A framework would hide exactly the decisions worth seeing: which lanes to run, how to route failures, when to stop. ~700 lines of visible Python means every decision point is auditable.",
+      "tradeoff_accepted": "No framework conveniences (retries, tracing come hand-rolled)."
+    },
+    {
+      "decision": "Formation, not pipeline: master -> five parallel lane researchers -> adversarial verifier -> brief writer",
+      "why": "Research is parallelizable and needs materially different context per lane (different playbooks, sources, budgets); judgment is not parallelizable and needs one owner. Rule: parallelize sources, never judgment. Verification must live in a fresh context because a context that generated claims will defend them.",
+      "tradeoff_accepted": "Coordination overhead and compressed handoffs - mitigated by making the handoff artifact structured data (the ledger with verbatim quotes), never prose summaries."
+    },
+    {
+      "decision": "Claims ledger as the spine: append-only rows with ID, verbatim quote, URL, timestamp, evidence grade (measured / stated_by_competitor / proxy / inferred), verification state",
+      "why": "The brief cites claim IDs inline so every sentence is auditable back to a URL. The ledger doubles as session state (follow-ups reuse it instead of re-researching) and as longitudinal memory (dated JSONs in git; re-runs auto-diff against the prior run to answer 'what changed').",
+      "tradeoff_accepted": "Claims regenerate IDs each run, so cross-run matching uses stable evidence (URLs, quote fingerprints) instead of IDs."
+    },
+    {
+      "decision": "Goal-discovery intake before any spend",
+      "why": "The same competitor audit should be shaped differently for campaign plays vs a sales battlecard vs an exec readout. One message, at most three defaulted questions; 'standard sweep' skips. Answers travel into lane focus notes and the brief's section 7 emphasis.",
+      "tradeoff_accepted": "One extra conversational turn before research starts."
+    },
+    {
+      "decision": "Failure is data, resolved silently",
+      "why": "The public web actively resists automated reading (JS walls, 403s, 404s) - every single run hit 3-5 blocked sources. Researchers auto-descend a source ladder and keep partial reads; the master never surfaces plumbing to the user; gaps are disclosed once in section 8 where they belong. Without this, briefs read confident while whole evidence categories are missing.",
+      "tradeoff_accepted": "Some fallback reads are proxy-grade - which is why grades exist and confidence is capped accordingly."
+    },
+    {
+      "decision": "No RAG / vector store",
+      "why": "Marketing intel dies stale: pricing, homepage messaging and active ads change weekly, and 'what changed recently' is a required output. Retrieval is the live web at run time, steered mid-run by the master; grounding is the whole ledger in context (cross-lane synthesis needs the full picture, not top-k chunks); provenance must re-verify against live pages.",
+      "tradeoff_accepted": "No cross-session semantic search; longitudinal memory is the dated-ledger diff instead."
+    },
+    {
+      "decision": "Verification enforced in code, not by prompt",
+      "why": "Under speed pressure the master once sampled 14 of 101 claims for verification and went to print - the eval harness caught it (13% pass-rate). Now write_brief itself auto-verifies anything unjudged before writing. Judgment gets a gate, not a suggestion.",
+      "tradeoff_accepted": "A brief written after a huge multi-round ledger pays a verification delay it cannot skip."
+    },
+    {
+      "decision": "One Session, three frontends (CLI, web chat, resumable brand threads)",
+      "why": "The Session emits structured events; the CLI prints them, the web UI renders them as live cards, and brand threads reload prior conversation plus the brand's ledger so follow-ups continue with full context. One loop means a behavior fixed once is fixed everywhere, and the reviewer can literally watch decide -> dispatch -> verify happen.",
+      "tradeoff_accepted": "Server keeps in-memory named sessions; process restart drops live threads (their transcripts and ledgers persist on disk and re-seed)."
+    },
+    {
+      "decision": "Checkpoint walk decoupled from research",
+      "why": "Wanted conversational pacing without wall-clock cost: all five researchers fire in parallel as usual, then findings are walked one lane at a time with 'dig in or continue?' stops answered from the live ledger. Interaction layer, not an execution layer.",
+      "tradeoff_accepted": "Checkpoint stops add user-paced latency to the final report when enabled - by design."
+    }
+  ],
+
+  "tool_and_model_choices": [
+    {
+      "choice": "Claude Opus for judgment, Sonnet for extraction",
+      "what": "Master, adversarial verifier, brief writer and LLM judge run the flagship; the five lane researchers run claude-sonnet-5 at capped claim volume (max 18/lane).",
+      "why": "Researchers execute tight playbooks - a faster model loses little there and cut lane wall-time roughly in half; synthesis, adversarial verification and section-7 judgment are where model quality shows. Both overridable via env (LANE_MODEL, JUDGE_MODEL, AGENT_MODEL).",
+      "tradeoff": "A faster researcher over-produced claims at first (38 in one lane); fixed with schema-enforced caps because every claim costs verification downstream."
+    },
+    {
+      "choice": "Server-side web_search + web_fetch as the research tools",
+      "what": "Anthropic's server tools with per-lane max_uses budgets; seed URLs injected per lane (ad libraries, pricing pages, archives, pixel/traffic lookups).",
+      "why": "Zero scraping infrastructure for a reviewer to install, budgets enforced server-side, dynamic content filtering built in.",
+      "tradeoff": "JS-heavy surfaces (ad libraries) may render empty - handled as first-class coverage reporting plus the source ladder, and a rendered-browser pull is the documented escalation rather than a bundled headless-browser dependency."
+    },
+    {
+      "choice": "Two runtimes, one formation",
+      "what": "api: Anthropic API with schema-validated structured outputs, prompt caching, pause_turn resume, backoff. cli: every model call becomes a `claude -p` subprocess billing a Claude subscription - zero API key.",
+      "why": "Reviewers without an API key can run everything (the entire sample set was produced keyless). The CLI master loop is a JSON action protocol - still decide -> execute -> observe - hardened against transcript echo with a last-action parser, an anti-replay check, and one corrective retry.",
+      "tradeoff": "CLI runtime pays a cold-start tax per master decision (~30-60s each) and budgets become prompt instructions instead of hard server caps. Stated in the README."
+    },
+    {
+      "choice": "Structured outputs everywhere (api runtime)",
+      "what": "Researcher, verifier and judge responses are schema-validated JSON at the API layer.",
+      "why": "No parse-and-pray: malformed output retries at the source instead of poisoning the ledger.",
+      "tradeoff": "The cli runtime approximates this with defensive parsing plus one retry."
+    },
+    {
+      "choice": "Parallelism where it is free",
+      "what": "Five researchers in threads (wall ~= slowest lane, ~2-3 min); the verifier chunks the ledger (24 claims/reviewer) and runs chunks in parallel with an automatic lower-concurrency retry for chunks that fail under load.",
+      "why": "Cut a ~13-15 minute audit to ~6-8 minutes of formation work without touching judgment quality.",
+      "tradeoff": "Parallel verifiers under heavy load can rate-limit - hence the retry round, and unjudged claims are reported rather than silently passed."
+    },
+    {
+      "choice": "FastAPI + SSE + a single-file vanilla web UI",
+      "what": "server.py streams the Session's structured events; ui/index.html renders chat, live formation cards, checkpoint tracker, audit history and resumable threads with no build step.",
+      "why": "A reviewer can read the whole frontend in one file; SSE fits a one-way event stream better than websockets.",
+      "tradeoff": "Single-user by design (one flight lock); fine for the tool's purpose."
+    },
+    {
+      "choice": "Per-stage latency instrumentation",
+      "what": "Every run records lane seconds, verify wall, brief wall and formation total into run.timings inside the claims JSON; the UI shows per-lane seconds live.",
+      "why": "Speed regressions should be argued from receipts, not vibes - and slow now fails evals like a quality bug.",
+      "tradeoff": "None material."
+    }
+  ],
+
+  "eval_system": {
+    "philosophy": "The same adversarial pressure the verifier applies to researchers, the harness applies to the whole agent. Nothing lands unverified; nothing ships uneval'd; every post-eval correction is logged inside the deliverable (run.post_eval_corrections) so the audit trail shows the harness catching things - which is the proof it works.",
+    "layers": [
+      {
+        "layer": 1,
+        "name": "Structural (free, deterministic, CI-ready exit code)",
+        "checks": [
+          "claims JSON field/enum validity",
+          "every non-inferred claim carries a verbatim quote",
+          "source_url must be a real fetchable URL (aggregate reads are graded inferred)",
+          "all 8 brief sections present",
+          ">= 15 distinct claim IDs cited; zero dangling citations",
+          "Rippling section (7) alone carries >= 5 citations",
+          "verification pass-rate >= 60% confirmed+plausible",
+          "latency budgets: slowest lane <= 300s, verify <= 300s, brief <= 300s, formation <= 750s"
+        ]
+      },
+      {
+        "layer": 2,
+        "name": "Grounding spot-check (network, no LLM)",
+        "checks": [
+          "re-fetch measured claims' URLs with a browser-grade UA",
+          "fuzzy-match stored quotes against live page text (5-word shingles, >= 60% must hit)",
+          "normalizations learned from real false-fails: html entity unescape, typographic quotes/dashes, tag-strip punctuation spacing"
+        ],
+        "purpose": "The anti-hallucination tripwire: a quote that is not on the page fails loudly."
+      },
+      {
+        "layer": 3,
+        "name": "LLM judge (one model call)",
+        "checks": [
+          "a 'demanding Rippling VP of Growth' scores 1-5 on evidence-grounding, specificity, recency, and Rippling-actionability",
+          "named weaknesses are returned and treated as a fix list, not commentary"
+        ]
+      }
+    ],
+    "logic_flow": [
+      "1. run completes -> brief.md + claims.json + claims report .html land in outputs/",
+      "2. structural checks run (free) - format, citation, quote, verification-coverage and latency budgets",
+      "3. grounding re-fetches a sample (or all) measured quotes against the live web",
+      "4. judge reads brief + ledger and returns scores plus named weaknesses",
+      "5. every finding becomes a correction: re-grade, re-verify, or fix the harness itself",
+      "6. corrections are appended to run.post_eval_corrections inside the claims JSON",
+      "7. evals re-run to green before the run is considered closed",
+      "8. tests/test_latency.py proves dispatch/verify parallelism and timing persistence with a stub model - zero tokens, CI-ready"
+    ],
+    "track_record": [
+      "caught composite multi-fragment quotes stitched with ellipses -> replaced with single contiguous verbatim runs",
+      "caught proxy fee claims over-graded as 'confirmed' whose source platform 403s direct fetches -> downgraded to plausible",
+      "caught the master sampling 14/101 claims for verification under speed pressure -> verification now enforced in code at write_brief",
+      "caught placeholder source URLs ('search_snippet_aggregate') -> protocol now requires fetchable URLs, aggregates route to inferred",
+      "caught a repair script renumbering claim IDs and dangling five brief citations -> IDs recovered from the git snapshot, repairs preserve IDs",
+      "caught its own harness false-failing on bot-walled pages, html entities and curly quotes -> grounding checker hardened, root-caused against live pages"
+    ]
+  },
+
+  "end_to_end_logic_flow": [
+    "1. user names a competitor (checkpoints on or off)",
+    "2. master scopes the goal: one message, three defaulted questions (end goal / motion scope / hypotheses); 'standard sweep' skips",
+    "3. master dispatches all five lane researchers in parallel, each with a sharpened focus note, per-lane budgets, and an 18-claim cap",
+    "4. researchers work their source ladders, auto-descending on walls; claims land in the append-only ledger with quotes, grades, timestamps",
+    "5. master reads the coverage report and decides: deepen a lane, run a second round, or proceed - never surfacing plumbing to the user",
+    "6. (checkpoint mode) findings walked five stops at a time, dig-ins answered from the live ledger, blind progress tracker on the side",
+    "7. adversarial verifier attacks every claim in parallel chunks with retry; write_brief force-verifies anything left unjudged",
+    "8. brief writer turns the verified ledger + master's synthesis notes into the 8-section brief; re-runs auto-diff against the prior dated run",
+    "9. deliverables: brief.md, claims.json (with timings and corrections log), filterable claims-report.html",
+    "10. eval harness grades the run (structure, grounding, judge, latency); failures loop back as fixes",
+    "11. audit history stores every exchange per brand; brand threads resume later with conversation + ledger loaded"
+  ]
+}

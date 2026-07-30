@@ -1,0 +1,1224 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ramp — claims ledger</title>
+<style>
+  :root { --ink:#1f2328; --dim:#6a737d; --faint:#98a1ab; --line:#e6e8eb; --soft:#f6f7f8;
+          --ok:#0e7a55; --okbg:#e7f5ef; --warn:#8a5a00; --warnbg:#fdf3dc;
+          --bad:#b42318; --badbg:#fdecea; --blue:#0b6bcb; --bluebg:#e8f1fc; }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#e6e8eb; --dim:#9aa4b0; --faint:#6b7480; --line:#2a2f36; --soft:#171a1f;
+             --ok:#4cc596; --okbg:#0d2b20; --warn:#e2b93d; --warnbg:#2c2410;
+             --bad:#f08578; --badbg:#331512; --blue:#6cb0f5; --bluebg:#10233a; }
+    body { background:#0f1114; }
+  }
+  * { box-sizing:border-box; margin:0; }
+  body { font:15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+         color:var(--ink); max-width:860px; margin:0 auto; padding:48px 28px 90px; }
+  h1 { font-size:30px; letter-spacing:-.4px; }
+  .sub { color:var(--dim); margin-top:6px; }
+  .statbar { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 6px; }
+  .stat { border:1px solid var(--line); border-radius:999px; padding:5px 13px; font-size:12.5px; color:var(--dim); }
+  .stat b { color:var(--ink); }
+  .filters { position:sticky; top:0; background:inherit; backdrop-filter:blur(6px);
+             display:flex; flex-wrap:wrap; gap:6px; padding:14px 0; border-bottom:1px solid var(--line);
+             margin-bottom:10px; z-index:5; background-color:rgba(255,255,255,.85); }
+  @media (prefers-color-scheme: dark) { .filters { background-color:rgba(15,17,20,.85); } }
+  .filters button { border:1px solid var(--line); background:none; color:var(--dim); border-radius:999px;
+                    padding:5px 13px; font:inherit; font-size:12.5px; cursor:pointer; }
+  .filters button.on { background:var(--bluebg); color:var(--blue); border-color:var(--blue); }
+  section { margin-top:34px; }
+  h2 { font-size:19px; padding-bottom:8px; border-bottom:1px solid var(--line); margin-bottom:14px;
+       text-transform:capitalize; }
+  .count { color:var(--faint); font-weight:400; font-size:14px; }
+  .claim { border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:12px; }
+  .claim.hidden { display:none; }
+  .head { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:8px; }
+  .cid { font-family:ui-monospace, Menlo, monospace; font-size:12px; color:var(--blue);
+         background:var(--bluebg); border-radius:6px; padding:2px 8px; }
+  .pill { font-size:11.5px; border-radius:999px; padding:2px 10px; }
+  .p-ok { color:var(--ok); background:var(--okbg); }
+  .p-warn { color:var(--warn); background:var(--warnbg); }
+  .p-bad { color:var(--bad); background:var(--badbg); }
+  .p-dim { color:var(--dim); background:var(--soft); }
+  .text { font-size:15px; }
+  blockquote { margin:10px 0 8px; padding:8px 14px; border-left:3px solid var(--line);
+               color:var(--dim); font-style:italic; background:var(--soft); border-radius:0 8px 8px 0; }
+  .src { font-size:12.5px; color:var(--faint); }
+  .src a { color:var(--blue); text-decoration:none; }
+  .vnote { margin-top:8px; font-size:12.5px; color:var(--dim); background:var(--soft);
+           border-radius:8px; padding:7px 11px; }
+  .vnote b { font-weight:600; }
+  .note { color:var(--dim); font-size:13px; margin-bottom:10px; }
+  .corr { padding-left:20px; color:var(--dim); font-size:13.5px; }
+  .corr li { margin-bottom:8px; }
+  footer { margin-top:40px; color:var(--faint); font-size:12.5px; border-top:1px solid var(--line); padding-top:14px; }
+</style></head><body>
+<h1>Ramp — claims ledger</h1>
+<div class="sub">Every fact behind the brief, with its verbatim quote, source, and how hard it survived verification.
+Generated 2026-07-29 · model claude-opus-4-8</div>
+<div class="statbar">
+  <span class="stat"><b>103</b> claims</span>
+  <span class="stat"><b>52</b> confirmed</span>
+  <span class="stat"><b>47</b> plausible</span>
+  <span class="stat"><b>4</b> flagged</span>
+  <span class="stat"><b>48</b> measured · <b>35</b> proxy ·
+      <b>14</b> self-claimed · <b>6</b> inferred</span>
+</div>
+<div class="filters" id="filters">
+  <button class="on" data-f="all">all</button>
+  <button data-f="v:confirmed">confirmed</button>
+  <button data-f="v:plausible">plausible</button>
+  <button data-f="v:flagged">flagged</button>
+  <button data-f="e:measured">measured</button>
+  <button data-f="e:proxy">proxy</button>
+  <button data-f="e:stated_by_competitor">self-claimed</button>
+  <button data-f="e:inferred">inferred</button>
+</div>
+<section><h2>messaging <span class="count">13</span></h2><div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C016</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp published a strategic positioning post titled &#x27;Ramp at $44 Billion: The Third Pillar&#x27; tying the new valuation to a stated expansion of company strategy.</div>
+<blockquote>&ldquo;Ramp at $44 Billion: The Third Pillar&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/blog" target="_blank">Ramp Blog listing</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Blog post &#x27;Ramp at $44 Billion: The Third Pillar&#x27; confirmed live at ramp.com/blog with matching title.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C033</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">The Ramp vs. Brex comparison page&#x27;s core objection-handling angle is compliance/automation superiority (audit coverage, ERP sync speed, NPS), not price or cashback.</div>
+<blockquote>&ldquo;50+ AI-driven audit flags... single-layer approval workflows... post-transaction notifications; 95% compliance... ~70% for Brex; NPS of 58–59 vs. Brex&#x27;s ~15 NPS&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/versus/brex" target="_blank">Ramp vs Brex | Choose Ramp as a Brex Alternative</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Comparison-page stats are Ramp&#x27;s own claims about Brex; inherently self-serving.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C041</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp&#x27;s LinkedIn About section claims over 70,000 companies have collectively saved $10 billion and 27.5 million hours since its 2019 founding.</div>
+<blockquote>&ldquo;over 70,000 companies have collectively saved $10 billion and 27.5 million hours since the company&#x27;s 2019 founding&rdquo;</blockquote>
+<div class="src"><a href="https://www.linkedin.com/company/ramp/" target="_blank">Ramp | LinkedIn</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Accurately represents Ramp&#x27;s own stated claim; 70,000+ figure independently confirmed on ramp.com homepage.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C045</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Ramp co-founder/CEO Eric Glyman publicly frames Ramp&#x27;s AI strategy around &#x27;invisible AI&#x27; handling finance grunt-work, citing agents that review ~100,000 expenses/day at 99% accuracy.</div>
+<blockquote>&ldquo;AI agents let us deliver on our core mission to save companies time and money without them noticing. The best AI is invisible AI. Our agents chase receipts, auto-fill expense reports and forecast cash flow so humans can focus on building things that matter.&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/blog/ai-for-internal-productivity" target="_blank">Eric Glyman on using AI to radically boost internal productivity</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Glyman &#x27;invisible AI&#x27; quote is Ramp&#x27;s own blog assertion; 100k expenses/day at 99% not independently reverified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C046</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Ramp&#x27;s brand X/Twitter account (@tryramp) uses a finance-team-as-hero tagline distinct from typical B2B corporate voice.</div>
+<blockquote>&ldquo;Ramp runs purchasing. You run finance. Everyone parties.&rdquo;</blockquote>
+<div class="src"><a href="https://x.com/tryramp/status/2049490668054098216" target="_blank">Ramp on X</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Tagline consistent with @tryramp brand voice but single proxy tweet, not reverified.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C053</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp&#x27;s homepage headlines aggregate outcome stats: 27M+ hours saved collectively, 75% faster book close, 3x more efficient intake-to-pay, and implementation in 30 days or less.</div>
+<blockquote>&ldquo;27M+ hours collectively&quot; ... &quot;close books 75% faster&quot; ... &quot;run intake-to-pay 3x more efficiently&quot; ... &quot;full implementation in 30 days or less&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com" target="_blank">Ramp homepage</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Homepage shows 27M+ hours, 75% faster close, 3x intake-to-pay, 30-day implementation.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C067</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Ramp&#x27;s fetched homepage nav is minimal and utility/trust-focused rather than persona/segment-focused: Docs, Help Center, Integrations, Pricing, Trust Center — with &#x27;Trust Center&#x27; as a top-level item signaling enterprise buyer reassurance (security/compliance) rather than SMB self-serve messaging.</div>
+<blockquote>&ldquo;Docs · Help Center · Integrations · Pricing · Trust Center&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com" target="_blank">Ramp homepage</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Nav items (Docs, Help Center, Integrations, Pricing, Trust Center) confirmed verbatim on re-fetch; the enterprise-signal reading is interpretive.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C087</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp&#x27;s core villain framing casts Rippling&#x27;s spend product as an HR add-on rather than a purpose-built finance tool.</div>
+<blockquote>&ldquo;Rippling&#x27;s spend management is an add-on to an HR platform — not a purpose-built finance automation system&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/versus/rippling" target="_blank">Ramp vs Rippling comparison</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Rippling versus page states spend management is an HR-platform add-on, not purpose-built finance system.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C088</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">The Ramp vs Rippling comparison table claims Ramp offers spend management and corporate cards &#x27;100% free&#x27; while marking Rippling &#x27;No&#x27; on that row, and &#x27;No&#x27; on 5% total-spend savings.</div>
+<blockquote>&ldquo;Total savings of 5% across all spending | Yes | No; Spend management and corporate cards — 100% free | Yes | No&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/versus/rippling" target="_blank">Ramp vs Rippling comparison table</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Re-fetched ramp.com/versus/rippling: both rows show Ramp=Yes, Rippling=No exactly as quoted.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C089</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Ramp claims Rippling &#x27;relies on basic controls without AI-powered enforcement&#x27; and lacks &#x27;comparable bill pay capabilities&#x27; — both are asserted with no cited evidence or benchmark methodology on the page.</div>
+<blockquote>&ldquo;Rippling relies on basic controls without AI-powered enforcement; Rippling does not offer comparable bill pay capabilities&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/versus/rippling" target="_blank">Ramp vs Rippling comparison</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Both quotes present verbatim on page with no cited methodology; stated_by_competitor caps at medium.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C091</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp backs its Rippling and Navan attacks with the same standardized proof stack: $12B+ customer savings, 27M+ hours of manual work eliminated, $2.5B in out-of-policy spend flagged, and &#x27;Ramp Agents catch 15x more out-of-policy spend than non-AI alternatives&#x27; at &#x27;99% accuracy&#x27;.</div>
+<blockquote>&ldquo;Ramp Agents catch 15x more out-of-policy spend than non-AI alternatives; 99% accuracy in policy enforcement&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/versus/rippling" target="_blank">Ramp vs Rippling / Ramp vs Navan proof points</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Re-fetch confirms all five proof-stack stats (incl. &#x27;15x more&#x27;, &#x27;99% accuracy&#x27;) appear verbatim on /versus/rippling; correctly graded stated_by_competitor.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C092</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">The Ramp vs Navan page frames Navan as travel-first with a bolted-on, manual expense suite, mirroring the same &#x27;not purpose-built&#x27; villain framing used against Rippling.</div>
+<blockquote>&ldquo;Navan is a travel-first platform designed for trip booking with a separate expense management suite. Ramp is an all-in-one finance automation platform that saves companies 5% on average and closes books 8x faster.&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/versus/navan" target="_blank">Ramp vs Navan comparison</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Re-fetch confirms the &#x27;travel-first... separate/bolted-on expense suite&#x27; framing and the 5%/8x line verbatim on /versus/navan.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C094</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Ramp&#x27;s homepage H1 is literally &#x27;Ramp — Machine Version&#x27;, with primary CTA driving to a signup URL carrying an active incentive parameter (&#x27;$3,100 signup bonus&#x27;).</div>
+<blockquote>&ldquo;Ramp — Machine Version&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com" target="_blank">Ramp homepage</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> H1 and $3,100 incentive param reproduced, but &#x27;Machine Version&#x27; plus &#x27;march26_agent_incentive&#x27; param signal an agent/machine-rendered variant, not the consumer brand headline — flag before leading with it.</div>
+</div></section><section><h2>positioning <span class="count">24</span></h2><div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C002</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Ramp&#x27;s official support documentation states the core card and expense product is free to use, not just a limited trial.</div>
+<blockquote>&ldquo;Our core Ramp card and expense management software is free to use.&rdquo;</blockquote>
+<div class="src"><a href="https://support.ramp.com/hc/en-us/articles/360043056073-Ramp-pricing-overview" target="_blank">Ramp pricing overview</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Support-doc quote not independently re-fetched but fully consistent with confirmed pricing page.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C009</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp&#x27;s support documentation is silent on interchange revenue or cashback as the mechanism funding the free tier, instead framing the value prop purely as time/money savings.</div>
+<blockquote>&ldquo;the only card platform built around saving time for you and your team and keeping money in your bank&rdquo;</blockquote>
+<div class="src"><a href="https://support.ramp.com/hc/en-us/articles/360043056073-Ramp-pricing-overview" target="_blank">Ramp pricing overview</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Support page carries the exact time/money-savings phrasing and makes no mention of interchange or cashback.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C011</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp&#x27;s packaging structure is a classic three-tier good-better-best (Free/Plus/Enterprise) rather than modular à la carte add-ons, with procurement as a notable add-on module inside Plus.</div>
+<blockquote>&ldquo;Procurement module (add-on)&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/pricing" target="_blank">Ramp Pricing and Plans</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Free/Plus/Enterprise tiers confirmed; procurement is an add-on (to Plus or Enterprise, not Plus-only as implied).</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C022</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Ramp is expanding into new verticals with &#x27;Ramp for Construction&#x27; (job visibility/real-time project tracking) and &#x27;Ramp Stack&#x27; (an automation platform aimed at accounting firms), plus a live Canada market launch as of July 28, 2026.</div>
+<blockquote>&ldquo;Ramp for Construction – Job visibility and real-time project tracking; Ramp Stack – Accounting firm automation platform; Canada, meet Ramp. (Jul 28)&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/blog" target="_blank">Ramp Blog listing</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Sourced from Ramp&#x27;s own blog; Construction/Stack/Canada-launch items not independently verified, and the Jul 28 date matching &#x27;today&#x27; warrants caution.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C023</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Press coverage of the June 2026 raise frames Ramp&#x27;s competitive set as Brex (recently acquired by Capital One for $5.15B) and Rippling, noting Rippling differentiates by bundling spend management with HR, IT, and payroll — implying Ramp is not (yet) positioned as an HR/payroll bundler.</div>
+<blockquote>&ldquo;The article mentions Brex (acquired by Capital One for $5.15 billion in 2026) and Rippling as competitors, though Rippling bundles spend management with HR, IT, and payroll tools—a differentiated approach from Ramp&#x27;s focus.&rdquo;</blockquote>
+<div class="src"><a href="https://techcrunch.com/2026/06/04/ramp-raises-750m-at-44b-valuation-as-investors-hunger-for-fintechs-with-an-ai-story/" target="_blank">TechCrunch: Ramp $750M/$44B raise coverage</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Capital One–Brex $5.15B deal confirmed (announced Jan 2026, closed Apr 2026); Rippling bundling framing plausible.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C049</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Ramp&#x27;s organic thought-leadership investment appears weighted toward owned-media data journalism (Leading Indicators, AI Index) rather than founder-led social video or heavy paid-influencer activity, based on the visible content mix.</div>
+
+<div class="src"><a href="https://ramp.com/leading-indicators" target="_blank">Leading Indicators — Ramp</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Inferred owned-media-weighted mix is consistent with confirmed Leading Indicators finding; caps at medium as an inference.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C050</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp&#x27;s homepage (as served to the fetch) self-describes as &#x27;an all-in-one spend management platform&#x27; rather than leading with &#x27;corporate card&#x27;.</div>
+<blockquote>&ldquo;Ramp is an all-in-one spend management platform...&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com" target="_blank">Ramp homepage</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Homepage self-describes as &#x27;an all-in-one spend management platform.&#x27;</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C051</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp&#x27;s homepage pushes an explicit &#x27;AI-First Automation&#x27; frame, naming four distinct AI agents inside accounts payable alone.</div>
+<blockquote>&ldquo;AI-First Automation&quot; ... &quot;Four AI agents in AP alone (auto-coding, fraud prevention, approval, payment)&quot; ... &quot;Policy Agent reviews 100% of expenses automatically&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com" target="_blank">Ramp homepage</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Homepage uses &#x27;AI-First Automation&#x27; and names four AP agents (auto-coding, fraud, approval, payment).</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="inferred">
+<div class="head"><span class="cid">C055</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Ramp&#x27;s proof pattern is dominated by quantified customer case studies (dollar saved, hours saved, % faster) rather than analyst badges or benchmark reports — every named account on the customers page carries a specific number.</div>
+
+<div class="src"><a href="https://ramp.com/customers" target="_blank">Ramp Customer Stories</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Fetch confirms nearly every named account carries a specific number; inference upheld but capped at medium as inferred.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C058</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp maintains a dedicated head-to-head comparison page directly against Brex, naming Brex explicitly as its primary corporate-card villain.</div>
+<blockquote>&ldquo;Ramp vs. Brex — Machine Version&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/versus/brex" target="_blank">Ramp vs Brex</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> ramp.com/versus/brex is a live dedicated head-to-head page naming Brex as primary rival.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C059</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp&#x27;s Brex comparison page attacks on independence and satisfaction: it frames Brex&#x27;s Capital One acquisition as a liability and cites a large NPS gap (Ramp 58-59 vs Brex ~15) plus a compliance-rate gap (95% vs ~70%).</div>
+<blockquote>&ldquo;4,200+ teams chose Ramp over Brex&quot; ... &quot;98.51% customer retention rate in 2024&quot; ... &quot;58–59 Ramp NPS vs. ~15 Brex NPS&quot; ... &quot;95% compliance&quot; (Ramp) vs. &quot;~70% compliance&quot; (Brex)&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/versus/brex" target="_blank">Ramp vs Brex</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Page fetch confirms 58–59 vs ~15 NPS, 95% vs ~70% compliance, 98.51% retention, 4,200+ teams, and Capital One acquisition framing.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C060</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Ramp publishes a dedicated &#x27;Ramp vs Rippling&#x27; comparison page explicitly positioning itself as a &#x27;Rippling Alternative&#x27;, showing direct competitive targeting on Rippling&#x27;s turf.</div>
+<blockquote>&ldquo;Ramp vs Rippling | Choose Ramp as a Rippling Alternative | Ramp&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/versus/rippling" target="_blank">Ramp vs Rippling (search result title)</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Ramp&#x27;s versus-page pattern confirmed; specific /versus/rippling &#x27;Rippling Alternative&#x27; title not directly refetched.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C061</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Ramp also runs multi-way comparison blog content bundling Brex against Mercury, Bill, Expensify, Amex, and Navan (e.g. &#x27;Brex vs. Mercury vs. Ramp&#x27;, &#x27;Navan vs Brex vs Ramp&#x27;, &#x27;Brex vs. BILL&#x27;, &#x27;Brex vs. Expensify vs. Ramp&#x27;, &#x27;Brex vs. American Express vs. Ramp&#x27;), indicating Ramp treats Brex as the anchor competitor across categories while also seeding SEO comparison content against Navan/Bill/Expensify.</div>
+<blockquote>&ldquo;Brex vs. Mercury vs. Ramp: Which Platform Is Right for You?&quot; ... &quot;Navan vs Brex vs Ramp: Which T&amp;E platform is right for you?&quot; ... &quot;Brex vs. BILL: Side-by-Side Comparison&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/blog/brex-vs-mercury-vs-ramp" target="_blank">Ramp blog comparison titles (search results)</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Multi-way Brex comparison blog titles consistent with Ramp&#x27;s SEO pattern; individual URLs not reverified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C062</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">For the query &#x27;Ramp vs Rippling spend management&#x27;, the answer-engine surface is split between Rippling&#x27;s own blog, a G2 comparison page, and Ramp&#x27;s own /versus/rippling page — no uncontested third-party owns this surface, it&#x27;s a directly fought comparison rather than an open opening.</div>
+<blockquote>&ldquo;Ramp vs. Expensify vs. Rippling: Expense Management Tools Comparison | Rippling&quot; / &quot;Ramp vs. Rippling Spend Comparison 2026&quot; (G2) / &quot;Ramp vs Rippling | Choose Ramp as a Rippling Alternative | Ramp&rdquo;</blockquote>
+<div class="src"><a href="https://www.rippling.com/blog/ramp-vs-expensify" target="_blank">Search: &quot;Ramp&quot; vs Rippling spend management</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> SERP-split characterization is a reasonable read of a contested comparison query but not independently reverified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C063</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">For the query &#x27;&quot;Ramp alternatives&quot; spend management&#x27;, the answer surface is owned by third parties, not Ramp itself — top results are G2&#x27;s alternatives page and, notably, a Brex-authored &#x27;Top 8 Ramp Competitors&#x27; page — meaning Brex is directly hunting Ramp&#x27;s own brand-name query.</div>
+<blockquote>&ldquo;Top 8 Ramp Competitors For Credit Cards &amp; Spend Management&quot; (brex.com) / &quot;Top 10 Ramp Alternatives &amp; Competitors in 2026 | G2&rdquo;</blockquote>
+<div class="src"><a href="https://www.brex.com/spend-trends/expense-management/ramp-competitors-and-alternatives" target="_blank">Search: &quot;Ramp alternatives&quot; spend management</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Brex-authored Ramp-competitors page and G2 alternatives page plausibly own the query; not refetched.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C068</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">No HR/IT persona pages, payroll framing, or workforce-management language appeared anywhere in the fetched homepage, pricing, or customer pages — Ramp&#x27;s category frame stays inside finance/spend/AP, not adjacent to Rippling&#x27;s HR/IT/payroll turf, except via the direct /versus/rippling competitive page.</div>
+
+<div class="src"><a href="https://ramp.com" target="_blank">Ramp homepage / pricing / customers (aggregate)</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Absence claim consistent with the finance/spend framing seen, but a negative finding not exhaustively verifiable across all pages.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C086</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp&#x27;s /versus/rippling page headline reads &#x27;Ramp vs. Rippling — Machine Version&#x27;, indicating Ramp serves a distinct AI-crawler-optimized version of its comparison pages.</div>
+<blockquote>&ldquo;Ramp vs. Rippling — Machine Version&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/versus/rippling" target="_blank">Ramp vs Rippling | Choose Ramp as a Rippling Alternative</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Rippling versus page headline &#x27;Ramp vs. Rippling — Machine Version&#x27; confirmed via fetch.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C090</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">This &#x27;no AI enforcement&#x27; / &#x27;no comparable bill pay&#x27; framing is a rebuttable overstatement — Rippling actively markets AI-driven spend controls and bill pay/procurement within Rippling Spend, so the binary &#x27;No&#x27; framing likely overstates the capability gap rather than reflecting an absent feature.</div>
+
+<div class="src"><a href="https://ramp.com/versus/rippling" target="_blank">Analytical read on Ramp&#x27;s Rippling attack claims</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Reasonable inferred rebuttal but Rippling&#x27;s countervailing AI/bill-pay marketing was not independently re-verified here.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C093</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">ramp.com/versus/bill returns HTTP 404, and no /versus index page exists at that URL either — suggesting Ramp does not currently maintain a public head-to-head page against BILL, despite BILL being a commonly cited AP-automation alternative.</div>
+<blockquote>&ldquo;The server returned HTTP 404 Not Found.&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/versus/bill" target="_blank">Ramp vs BILL (page not found)</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Re-fetch confirms /versus/bill returns HTTP 404; the &#x27;no BILL head-to-head page&#x27; interpretation follows reasonably.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C096</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Ramp homepage nav leads with Docs, Help Center, Integrations, Pricing, Trust Center — a product/dev/trust-first nav, not a persona- or industry-led structure, and its copy explicitly targets mid-market-to-enterprise buyers (CFOs, NetSuite/Oracle integrations, 40+ currencies, 200+ countries, multi-entity support).</div>
+<blockquote>&ldquo;scaling operations globally across 40+ currencies and 200+ countries&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com" target="_blank">Ramp homepage nav and audience language</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Nav order and 40+ currencies/200+ countries/NetSuite-Oracle/multi-entity confirmed, but &#x27;CFOs&#x27; is not in the page copy — minor overreach on that element.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C100</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">For the AEO query &#x27;&quot;Ramp&quot; vs Rippling spend management&#x27;, the answer surface is contested but not open — top results are Rippling&#x27;s own blog (&#x27;Ramp vs. Expensify vs. Rippling&#x27;), Ramp&#x27;s own /versus/rippling page, and G2&#x27;s comparison page, meaning both vendors already own competing content on this exact query.</div>
+<blockquote>&ldquo;Ramp vs. Expensify vs. Rippling: Expense Management Tools Comparison | Rippling; Ramp vs Rippling | Choose Ramp as a Rippling Alternative | Ramp; Ramp vs. Rippling Spend Comparison 2026 | G2&rdquo;</blockquote>
+<div class="src"><a href="https://www.rippling.com/blog/ramp-vs-expensify" target="_blank">Search: &quot;Ramp&quot; vs Rippling spend management</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> SERP-snapshot claim internally consistent but not independently re-verified; proxy grade appropriate.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C101</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">For the AEO query &#x27;Ramp alternatives 2026&#x27;, the top-ranking results are entirely third-party (Precoro, ITILITE, G2, Fyle, Airwallex, Rillion, Rho) — no ramp.com-owned page and no rippling.com-owned page appears in the top results, making this a genuine open opening neither vendor currently controls.</div>
+<blockquote>&ldquo;Ramp competitors in 2026. Best Ramp Alternatives for Spend Management | precoro.com; 10 Best Ramp Alternatives &amp; Competitors (2026) | itilite.com; Top 10 Ramp Alternatives &amp; Competitors in 2026 | G2&rdquo;</blockquote>
+<div class="src"><a href="https://precoro.com/blog/ramp-competitors-alternatives/" target="_blank">Search: Ramp alternatives 2026</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> All-third-party SERP result claim plausible but not re-verified; results can shift, so an &#x27;open opening&#x27; conclusion is time-sensitive.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C102</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Rippling already publishes its own offensive comparison content against Ramp, including a blog post ranking itself among &#x27;Top 8 Ramp competitors for spend management software&#x27; — meaning Rippling is not passively absorbing Ramp&#x27;s attack pages but running symmetric counter-content.</div>
+<blockquote>&ldquo;Top 8 Ramp competitors for spend management software in 2025 | Rippling&rdquo;</blockquote>
+<div class="src"><a href="https://www.rippling.com/blog/spend-management-ramp-competitors" target="_blank">Search result: Rippling&#x27;s own Ramp-competitor content</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Search returns the exact-titled Rippling blog post at the cited URL; proxy grade caps at medium.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C103</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">For the query &#x27;best corporate card and spend management software for mid-market&#x27;, search results position Ramp as strong for startups/mid-market real-time visibility but do not surface Rippling at all in the synthesized top picks (Airbase, Brex, Ramp, BILL Divvy named) — indicating Rippling has limited SOV on generic mid-market spend-tool queries even though it competes directly.</div>
+<blockquote>&ldquo;Ramp pairs corporate charge cards with a full spend management layer... Ramp is especially popular with startups and mid-market companies&rdquo;</blockquote>
+<div class="src"><a href="https://www.brex.com/spend-trends/expense-management/best-spend-management-software" target="_blank">Search: best corporate card and spend management software for mid-market</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Independent re-search of the exact query confirms top picks (Airbase, Brex, Ramp, BILL Divvy, Coupa) omit Rippling, corroborating the directional finding, but the cited quote only supports Ramp&#x27;s mid-market popularity and the &#x27;limited SOV&#x27; conclusion is a soft inference from listicles, not a measured SOV study.</div>
+</div></section><section><h2>product <span class="count">11</span></h2><div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C006</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp gates deep ERP integrations (Workday, Oracle Fusion Cloud) and multi-country local-currency card issuing behind the Enterprise/sales-led tier, not the self-serve Plus tier.</div>
+<blockquote>&ldquo;Workday and Oracle Fusion Cloud integrations, Local currency card issuing in 30+ countries&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/pricing" target="_blank">Ramp Pricing and Plans</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Pricing page lists Workday/Oracle Fusion and 30+ country local-currency issuing under Enterprise only, not Plus.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C017</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Ramp announced &#x27;Ramp Applied AI Solutions,&#x27; embedding engineering support to help enterprise finance teams implement custom AI workflows within weeks.</div>
+<blockquote>&ldquo;Introducing Ramp Applied AI Solutions... Ori Daniel announces embedded engineering support for finance teams implementing custom AI workflows within weeks.&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/blog" target="_blank">Ramp Blog listing</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Consistent with Ramp&#x27;s AI push; blog quote not independently re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C018</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">On April 29, 2026 Ramp launched a fleet of AI agents across its procurement platform that triage employee purchase requests, source vendors, review contract terms, and run compliance checks, which Ramp says cuts ~2 hours of manual research per request and makes procurement run 3x faster for customers.</div>
+<blockquote>&ldquo;AI agents conduct custom compliance checks for security, legal, and finance teams before a request reaches an approver, saving stakeholders approximately 2 hours of manual research per request... customers are running their entire procurement process 3x faster than before.&rdquo;</blockquote>
+<div class="src"><a href="https://www.prnewswire.com/news-releases/ramp-launches-fleet-of-ai-agents-across-its-procurement-platform-302756657.html" target="_blank">Ramp Launches Fleet of AI Agents Across Its Procurement Platform</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Proxy PR-newswire source; 2hr/3x figures are Ramp&#x27;s own claims, not independently measured.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C019</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Ramp launched a corporate credit card and payments infrastructure specifically designed for AI agents to transact on a user&#x27;s behalf, part of its broader &#x27;AI token spend&#x27; monitoring push.</div>
+<blockquote>&ldquo;CEO Eric Glyman highlighted expansion into AI token usage monitoring and building &quot;infrastructure to enable AI agents to make payments on their users&#x27; behalf.&quot; The company launched a corporate credit card specifically designed for AI agents&rdquo;</blockquote>
+<div class="src"><a href="https://techcrunch.com/2026/06/04/ramp-raises-750m-at-44b-valuation-as-investors-hunger-for-fintechs-with-an-ai-story/" target="_blank">TechCrunch: Ramp $750M/$44B raise coverage</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> $750M/$44B June 2026 raise is well-reported; AI-agent-specific card detail not independently re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C020</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">In January 2025 Ramp launched a treasury product offering stored-value accounts earning 2.5% interest, integrated with Workday Financial Management.</div>
+<blockquote>&ldquo;January 2025 - Launched treasury product offering stored value accounts earning 2.5% interest; integrated with Workday Financial Management.&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/press" target="_blank">Ramp Press page</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Ramp Treasury launch (Jan 22 2025, 2.5% APY) confirmed, but launch materials cite generic ERP sync — Workday Financial Management specificity uncorroborated.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C021</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp launched Ramp Travel in June 2024, integrating Priceline&#x27;s inventory for business travel booking, and launched the Ramp App Center in October 2024 as an open developer-integration ecosystem — both predating and feeding the current all-in-one platform positioning.</div>
+<blockquote>&ldquo;June 2024 - Launched Ramp Travel, integrating travel booking with Priceline&#x27;s inventory... October 2024 - Introduced Ramp App Center, pioneering an open ecosystem allowing developers to build integrations directly into the platform.&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/press" target="_blank">Ramp Press page</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Ramp Travel/Priceline June 2024 launch confirmed via press; App Center Oct 2024 not separately checked but coherent.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C057</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp&#x27;s Enterprise tier is differentiated specifically by up-market/global capability: custom integrations with Workday and Oracle Fusion Cloud, local currency card issuing in 30+ countries, and white-glove/dedicated account management — signaling a deliberate enterprise up-market push beyond SMB roots.</div>
+<blockquote>&ldquo;White-glove support with dedicated account manager&quot; ... &quot;Custom integrations (Workday, Oracle Fusion Cloud)&quot; ... &quot;Local currency card issuing in 30+ countries&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/pricing" target="_blank">Ramp Pricing</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Pricing page confirms Workday/Oracle Fusion integrations, 30+ country local currency issuing, white-glove support on Enterprise.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C064</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp launched &#x27;Ramp Applied AI Solutions&#x27; in June 2026, a dedicated offering to help large enterprises deploy AI agents across finance workflows (AP, procurement, close, AR, expense) — reinforcing an enterprise-directed &#x27;AI finance ops&#x27; category push beyond its SMB-card origins.</div>
+<blockquote>&ldquo;Ramp Launches Applied AI Solutions, Helping Enterprises Deploy AI Agents Across Finance Operations&rdquo;</blockquote>
+<div class="src"><a href="https://www.prnewswire.com/news-releases/ramp-launches-applied-ai-solutions-helping-enterprises-deploy-ai-agents-across-finance-operations-302796179.html" target="_blank">PR Newswire: Ramp Launches Applied AI Solutions</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Confirmed via PRNewswire coverage: Applied AI Solutions launched June 10, 2026, spanning AP, procurement, close, AR, expense.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C075</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">A Capterra reviewer (COO, Non-Profit) wrote in November 2023 that the UX on Ramp&#x27;s &#x27;missing items&#x27; page needs improvement</div>
+<blockquote>&ldquo;The UX could be improved on the missing items page&rdquo;</blockquote>
+<div class="src"><a href="https://www.capterra.com/p/207081/Ramp/reviews/" target="_blank">Ramp Reviews - Capterra</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Specific single Capterra review quote not independently re-verified; &#x27;high&#x27; overstates a lone rotating review, capped to medium.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C084</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Review-pattern analysis suggests Ramp works well for corporate card management but falls short for businesses needing robust AP automation, advanced approval workflows, or a complete procure-to-pay solution — an upmarket/enterprise capability gap</div>
+<blockquote>&ldquo;The platform works well for Ramp corporate card management. But it falls short when businesses need robust AP automation, advanced workflows, or a complete procure-to-pay (P2P) solution.&rdquo;</blockquote>
+<div class="src"><a href="https://www.stampli.com/blog/ap-automation/ramp-review/" target="_blank">Ramp user reviews: The good, bad, and a better AP &amp; P2P option - Stampli</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Quote carries the AP/P2P capability-gap claim but source is competitor Stampli (an AP-automation vendor) — bias should be flagged.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C099</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Third-party 2026 coverage claims Ramp has moved multi-entity management, global reimbursements, and NetSuite/Sage Intacct integrations behind the paid &#x27;Ramp Plus&#x27; tier, and that Ramp&#x27;s travel support is limited (round-trip flights only, no self-serve hotel changes) — a gap Rippling/Navan could exploit in counter-positioning.</div>
+<blockquote>&ldquo;Ramp has moved many advanced features like multi-entity management, global reimbursements, and NetSuite/Sage Intacct integrations behind a $15/user/month &quot;Ramp Plus&quot; subscription... Ramp&#x27;s biggest gap is integrated business travel: only round-trip flights are supported, hotel modifications are not self-serve&rdquo;</blockquote>
+<div class="src"><a href="https://www.airwallex.com/en-us/blog/ramp-alternatives" target="_blank">6 Best Ramp Alternatives &amp; Competitors for 2026</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> NetSuite/Sage Intacct-behind-Plus corroborated by the pricing fetch; travel-limitation claims unverified and source is competitor Airwallex.</div>
+</div></section><section><h2>pricing <span class="count">14</span></h2><div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C001</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp&#x27;s entry tier is literally named &#x27;Free&#x27; and priced at $0/mo/user.</div>
+<blockquote>&ldquo;$0/mo/user&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/pricing" target="_blank">Ramp Pricing and Plans</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Re-fetched pricing page; Free tier shows $0/mo/user.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C003</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp&#x27;s mid tier &#x27;Plus&#x27; is priced at $15/mo per user plus an additional platform fee scaled to team size, on top of the per-seat charge.</div>
+<blockquote>&ldquo;$15/mo/user + Platform fee based on team size&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/pricing" target="_blank">Ramp Pricing and Plans</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Pricing page shows Plus at $15/mo/user + platform fee based on team size.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C004</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp offers a 20% discount on the Plus tier for annual billing versus monthly.</div>
+<blockquote>&ldquo;Save 20% with annual billing&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/pricing" target="_blank">Ramp Pricing and Plans</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Fetched pricing page: &#x27;Save 20% with annual billing&#x27; applies specifically to the Plus tier.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C005</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp&#x27;s Enterprise tier is not self-serve priced; access requires contacting sales and is billed annually.</div>
+<blockquote>&ldquo;Custom&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/pricing" target="_blank">Ramp Pricing and Plans</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Enterprise shown as &#x27;Custom&#x27;, annual billing, &#x27;Contact sales&#x27; — carries the claim.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C007</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp allows customers to pay their Plus subscription fee using rewards earned from Ramp card spend, tying the SaaS fee directly to card usage/interchange economics.</div>
+<blockquote>&ldquo;You can pay for Ramp Plus with ACH or the rewards you earn from your Ramp card spending.&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/pricing" target="_blank">Ramp Pricing and Plans</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Pricing page confirms Plus payable via ACH or Ramp card rewards.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C008</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Ramp advertises up to 5% cashback plus over $350K in partner offers as card benefits, part of its interchange-funded value proposition, but does not publicly disclose interchange as its free-tier revenue mechanism.</div>
+<blockquote>&ldquo;Up to 5% cashback and over $350K in partner offers&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com" target="_blank">Ramp homepage</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Cashback/partner-offer figures are competitor self-assertion; interchange-nondisclosure is an inference, consistent with pricing page silence.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C010</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp charges separate Bill Pay transaction fees ($0.59–$20 depending on payment method) even though the core platform is free, but waives these fees if payment routes through a Ramp Checking Account — a cross-sell lever into its banking product.</div>
+<blockquote>&ldquo;Bill Pay transactions incur fees ranging from $0.59 to $20 depending on method. However, fees are waived when paying through a Ramp Checking Account.&rdquo;</blockquote>
+<div class="src"><a href="https://support.ramp.com/hc/en-us/articles/360043056073-Ramp-pricing-overview" target="_blank">Ramp pricing overview</a>
+ · observed 2026-07-28 · lane: pricing</div>
+<div class="vnote"><b>verifier:</b> Support page confirms $0.59–$20 Bill Pay fees waived via Ramp Checking (except overnight check/attachments).</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C056</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp&#x27;s pricing page structures three explicit tiers — Free ($0/mo/user) for &#x27;smaller teams who want to simplify finances&#x27;, Plus ($15/mo/user + platform fee) for &#x27;teams who want to use AI-driven automation to eliminate busywork&#x27;, and custom Enterprise for &#x27;teams who need full customization&#x27; — with the page copy explicitly spanning &#x27;startup, global enterprise, or somewhere in between&#x27;.</div>
+<blockquote>&ldquo;smaller teams who want to simplify finances&quot; ... &quot;teams who want to use AI-driven automation to eliminate busywork&quot; ... &quot;teams who need full customization&quot; ... &quot;startup, global enterprise, or somewhere in between&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/pricing" target="_blank">Ramp Pricing</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Pricing page confirms three tiers with matching segment descriptions; Free/Plus/Enterprise structure verified.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C076</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Ramp charges a 3% fee on transactions initiated in a foreign currency, a real cost buyers hit despite the &#x27;free&#x27; card marketing</div>
+<blockquote>&ldquo;3% fee...for processing transactions you initiate in a foreign currency&rdquo;</blockquote>
+<div class="src"><a href="https://www.zeni.ai/blog/how-much-does-ramp-card-cost" target="_blank">How much does Ramp card cost? - Zeni</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Zeni source states the 3% foreign-currency fee verbatim; proxy (third-party, not Ramp&#x27;s own doc) so capped at medium.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C077</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Beyond the free card, Ramp charges $20 for international payments via Bill Pay, $10 for same-day ACH, and $0.65 per 1099 filing — fees separate from the advertised free plan</div>
+<blockquote>&ldquo;$20 fee for international payments via Bill Pay&quot; ... &quot;$10 for same-day ACH payments&quot; ... &quot;$0.65 per 1099 filing&rdquo;</blockquote>
+<div class="src"><a href="https://www.zeni.ai/blog/how-much-does-ramp-card-cost" target="_blank">How much does Ramp card cost? - Zeni</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> $20 intl Bill Pay, $10 same-day ACH, $0.65/1099 all appear verbatim in the Zeni source; proxy grade honest.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C078</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">To get advanced card controls like auto-locking employee cards, businesses must upgrade off the free tier to Ramp Plus at $15/user/month plus a platform fee scaled to team size — an upsell pressure point against the &#x27;entirely free&#x27; pitch</div>
+<blockquote>&ldquo;$15 per user, per month, plus a platform fee based on the size of your team&rdquo;</blockquote>
+<div class="src"><a href="https://www.zeni.ai/blog/how-much-does-ramp-card-cost" target="_blank">How much does Ramp card cost? - Zeni</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> $15/user + platform fee corroborated by both Zeni and ramp.com/pricing; the specific &#x27;auto-locking&#x27; feature-gating is slight extrapolation beyond the price quote.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C081</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">A third-party summary of TrustRadius reviews states many businesses on Ramp&#x27;s free plan end up upgrading to paid tiers starting around $15/user/month for necessary finance features, undercutting the &#x27;free&#x27; positioning</div>
+<blockquote>&ldquo;While Ramp markets a &#x27;free&#x27; plan, many businesses find themselves upgrading to paid tiers (starting at ~$15 per user/month) for necessary finance features.&rdquo;</blockquote>
+<div class="src"><a href="https://www.trustradius.com/products/ramp-finance-automation-platform/reviews" target="_blank">Ramp Reviews &amp; Ratings - TrustRadius (search snippet)</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Third-party summary, honestly hedged; the ~$15/user upgrade figure is corroborated by the pricing page though the upgrade narrative is unverified synthesis.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C082</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">A third-party review synthesis characterizes Ramp&#x27;s pricing strategy as forcing businesses to choose between severely limited free functionality or premium pricing for capabilities buyers consider table-stakes in modern accounting automation</div>
+<blockquote>&ldquo;This pricing strategy forces businesses to either accept severely limited functionality or pay premium prices for capabilities that should be standard in modern accounting automation platforms.&rdquo;</blockquote>
+<div class="src"><a href="https://www.g2.com/sellers/ramp-financial" target="_blank">Ramp Financial Products - G2 (search snippet)</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Opinion/synthesis characterization hedged as third-party; not a verifiable factual claim and quote unlikely native to the cited g2.com/sellers page.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C098</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp&#x27;s pricing page shows a free tier ($0/mo/user), a Plus tier at $15/mo/user plus a platform fee (20% off annual), and custom Enterprise pricing, with zero explicit cost comparisons against any named competitor on the page itself.</div>
+<blockquote>&ldquo;Plus (AI-powered) — $15/mo/user + Platform fee based on team size; Save 20% with annual billing&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/pricing" target="_blank">Ramp pricing</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Re-fetch confirms $0 free / $15+platform-fee Plus / custom Enterprise tiers with 20% annual discount and no named-competitor comparison on the page.</div>
+</div></section><section><h2>ads <span class="count">12</span></h2><div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C025</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Third-party ad-spy tool Motion counts 168 active Ramp ads running on Meta, with roughly 17 new creatives produced per week.</div>
+<blockquote>&ldquo;168 active ads on Meta, with approximately 17 new creatives per week&rdquo;</blockquote>
+<div class="src"><a href="https://motionapp.com/library/ramp" target="_blank">Ramp&#x27;s Paid Social Creative Strategy | Motion</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Third-party Motion figures (168 ads, ~17/wk) unverifiable from here; proxy, no red flags.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C026</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Ramp runs a partner-acquisition ad track offering premium physical gifts (Oura Ring, WHOOP membership, AirPods Pro, walking pads) to accounting professionals to drive demo bookings.</div>
+<blockquote>&ldquo;hook: premium gift bribe | persona: accounting-partner | pain: low demo-booking motivation | offer: gift (Oura Ring/WHOOP/AirPods Pro/walking pad) | funnel: conversion | proof: none-stated | format: static/video mix | longevity: long-running (168 active, weekly refresh implies sustained program)&rdquo;</blockquote>
+<div class="src"><a href="https://motionapp.com/library/ramp" target="_blank">Ramp&#x27;s Paid Social Creative Strategy | Motion</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Gift-bribe partner-acquisition track is analyst interpretation of Motion data; plausible but unverified inference.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C027</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Ramp runs a separate Meta ad track educating Canadian SMBs on the corporate card&#x27;s 1% cash back and automated expense management, distinct from the US partner-gift track.</div>
+<blockquote>&ldquo;hook: practical finance automation and cost savings | persona: Canadian-SMB-owner | pain: manual expense management | offer: 1% cash back / card signup | funnel: education/awareness | proof: none-stated | format: listicle/skit/screen-recording/text-message-style | longevity: scaling-to-long-running&rdquo;</blockquote>
+<div class="src"><a href="https://motionapp.com/library/ramp" target="_blank">Ramp&#x27;s Paid Social Creative Strategy | Motion</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Ad-intelligence proxy inferring a distinct Canadian track; not independently corroborated.</div>
+</div>
+<div class="claim" data-v="unsupported" data-e="proxy">
+<div class="head"><span class="cid">C028</span>
+<span class="pill p-bad">unsupported</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Motion&#x27;s tracking of Ramp&#x27;s Meta ad account found no TikTok or LinkedIn ad creative in its library, consistent with Ramp being Meta-concentrated for paid social.</div>
+<blockquote>&ldquo;Platform coverage: Meta only (no TikTok or LinkedIn mentioned)&rdquo;</blockquote>
+<div class="src"><a href="https://motionapp.com/library/ramp" target="_blank">Ramp&#x27;s Paid Social Creative Strategy | Motion</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Absence of TikTok/LinkedIn in one tool&#x27;s library does not establish Meta-concentration; overreach on absence-of-evidence.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C029</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Ramp&#x27;s core paid-landing-page promise is finance-automation time/money savings, not card cashback: the savings calculator page leads with a 5% average-savings claim.</div>
+<blockquote>&ldquo;Save an average of 5% across your entire business&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/savings-calculator" target="_blank">Calculate How Much Time &amp; Money Ramp Can Save You</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Landing-page 5% savings headline plausible; not re-fetched.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C030</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Ramp&#x27;s savings-calculator landing page backs the savings claim with aggregate proof stats of 27M+ hours and $12B+ saved by customers.</div>
+<blockquote>&ldquo;Businesses have saved over 27M+ hours with Ramp; Businesses have saved over $12B+ with Ramp&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/savings-calculator" target="_blank">Calculate How Much Time &amp; Money Ramp Can Save You</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> 27M-hours/$12B are competitor self-asserted marketing stats, not independently verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C031</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Ramp&#x27;s corporate-card landing page headline positions the card as a modern-finance/automation product first, savings second, cashback third.</div>
+<blockquote>&ldquo;hook: A corporate card designed for modern finance | persona: finance-teams/controllers/accounting-teams/dept-managers | pain: manual card + expense ops | offer: free-signup + demo | funnel: conversion | proof: stat-claims | format: static-page | offer detail: up to 5% cashback, no personal guarantee, no annual fee, no interest&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/corporate-cards" target="_blank">The Best Corporate Credit Card - Ramp</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Corporate-card page positioning consistent with brand; not re-fetched.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C032</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp&#x27;s Brex-comparison landing page leads with adoption-scale social proof rather than price.</div>
+<blockquote>&ldquo;4,200+ teams have chosen Ramp over Brex&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/versus/brex" target="_blank">Ramp vs Brex | Choose Ramp as a Brex Alternative</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Brex versus page leads with &#x27;4,200+ teams have chosen Ramp over Brex&#x27; social proof, not price.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C035</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Ramp&#x27;s paid-search share of total traffic is a minority relative to organic, indicating an organic/product-led-heavy acquisition mix with paid as a secondary channel.</div>
+<blockquote>&ldquo;Organic Search: 64.18% ... Paid Search: 35.82%&rdquo;</blockquote>
+<div class="src"><a href="https://www.similarweb.com/website/ramp.com/" target="_blank">Ramp.com Traffic Overview - Similarweb</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Similarweb estimate; traffic-split figures are modeled proxies.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C036</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Ramp&#x27;s traffic is heavily US-concentrated, consistent with a US-first paid and organic acquisition strategy.</div>
+<blockquote>&ldquo;United States – 88.19% (dominant market)&rdquo;</blockquote>
+<div class="src"><a href="https://www.similarweb.com/website/ramp.com/" target="_blank">Ramp.com Traffic Overview - Similarweb</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Similarweb estimate; US concentration is a modeled proxy figure.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C037</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Ramp runs a funded, multi-channel performance-marketing organization spanning SEM, display, paid social, and direct mail, per open reqs including a Director of Performance Marketing.</div>
+<blockquote>&ldquo;Director, Performance Marketing... Performance Marketing Manager | SEM... Performance Marketing Manager | Display &amp; Social... Performance Marketing Analyst, Direct Mail&rdquo;</blockquote>
+<div class="src"><a href="https://www.linkedin.com/jobs/ramp-jobs" target="_blank">Ramp performance marketing job listings</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Quoted req titles (SEM, Display &amp; Social, Direct Mail) fit a real perf-marketing org; LinkedIn jobs page not independently reverified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C039</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Ramp invests in offline/OOH brand advertising alongside digital paid social, including a multi-market out-of-home and mural campaign.</div>
+<blockquote>&ldquo;a Manhattan mural space above a parking lot with &quot;High returns OR High liquidity&quot; text&rdquo;</blockquote>
+<div class="src"><a href="https://www.colossalmedia.com/case-studies/ramp" target="_blank">RAMP — Colossal Media</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Colossal Media does OOH murals; Manhattan mural quote consistent but not reverified.</div>
+</div></section><section><h2>social <span class="count">5</span></h2><div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C038</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Ramp uses LinkedIn organic/sponsored-style posts mirroring case-study ad creative, e.g. a customer-success post on faster book closing with an ERP integration.</div>
+<blockquote>&ldquo;How Clearbit closed the books &gt;60% faster with Ramp + NetSuite&rdquo;</blockquote>
+<div class="src"><a href="https://www.linkedin.com/posts/ramp_how-clearbit-closed-the-books-60-faster-activity-7088600845738500097-k2_Z" target="_blank">Ramp LinkedIn post</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> Clearbit/NetSuite case-study post is plausible but &#x27;mirroring ad creative&#x27; is interpretive; single proxy post.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C040</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Ramp&#x27;s LinkedIn company page has 332,071 followers and lists 2,752 employees (1,001-5,000 company size band).</div>
+<blockquote>&ldquo;Follower Count: 332,071 LinkedIn followers; Employee Count: 2,752 employees across 1,001-5,000 company size range&rdquo;</blockquote>
+<div class="src"><a href="https://www.linkedin.com/company/ramp/" target="_blank">Ramp | LinkedIn</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Graded measured but LinkedIn page not reverifiable; exact 332,071/2,752 figures uncorroborated so capped at medium.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C042</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Ramp&#x27;s recent LinkedIn post themes (as of late July 2026) center on Canadian market expansion (CAD/USD spend management), stablecoin payments (USDC/USDT) for cross-border transactions, &#x27;Token Spend Management&#x27; for tracking AI-related spend, and &#x27;Ramp Router&#x27; (an LLM routing service).</div>
+<blockquote>&ldquo;Canadian market expansion with CAD/USD spend management capabilities; Stablecoin payment functionality (USDC, USDT) for cross-border transactions; Token Spend Management for tracking and controlling AI-related expenses; Ramp Router, an LLM routing service&rdquo;</blockquote>
+<div class="src"><a href="https://www.linkedin.com/company/ramp/" target="_blank">Ramp | LinkedIn</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Token spend and stablecoin/token themes corroborated by funding coverage and Applied AI launch; Ramp Router/Canada specifics unverified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C043</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Ramp launched a content/video property called &#x27;Leading Indicators,&#x27; announced via its LinkedIn page, positioned around business finance in the AI era.</div>
+<blockquote>&ldquo;Launch of a YouTube channel called &quot;Leading Indicators&quot; addressing business finance in the AI era&rdquo;</blockquote>
+<div class="src"><a href="https://www.linkedin.com/company/ramp/" target="_blank">Ramp | LinkedIn</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Leading Indicators exists but per C044 it is an editorial hub, not primarily a &#x27;YouTube channel&#x27;—quote overstates the video framing.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C044</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp&#x27;s &#x27;Leading Indicators&#x27; hub (ramp.com/leading-indicators) is a weekly-cadence editorial publication covering AI adoption, corporate spend patterns, labor markets, and economic signals, fronted by Ramp&#x27;s in-house Lead Economist Ara Kharazian plus Editorial Lead Rebecca Moretti — this is data-journalism-style thought leadership, not founder-phone-video content.</div>
+<blockquote>&ldquo;Stories appear weekly, with dates ranging from late June through late July visible in the current feed.&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/leading-indicators" target="_blank">Leading Indicators — Ramp</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Fetch confirms weekly ramp.com/leading-indicators with Ara Kharazian (Lead Economist) and Rebecca Moretti (Editorial Lead), data-journalism style.</div>
+</div></section><section><h2>news <span class="count">4</span></h2><div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C012</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp raised $750 million in a round valuing the company at $44 billion, announced June 4, 2026, led by ICONIQ, GIC, and Ontario Teachers&#x27; Pension Plan, with new investors including Goldman Sachs Alternatives, D.E. Shaw, Morgan Stanley Investment Management, Generation Investment Management, Insight Partners, and BroadLight Capital.</div>
+<blockquote>&ldquo;Amount: $750 million; Valuation: $44 billion; Date: June 4, 2026. Lead Investors: ICONIQ, GIC, Ontario Teachers&#x27; Pension Plan&rdquo;</blockquote>
+<div class="src"><a href="https://techcrunch.com/2026/06/04/ramp-raises-750m-at-44b-valuation-as-investors-hunger-for-fintechs-with-an-ai-story/" target="_blank">Ramp raises $750M at $44B valuation as investors hunger for fintechs with an AI story</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Multiple sources (OTPP, PRNewswire, Bloomberg, TechCrunch) confirm $750M at $44B, June 4 2026, leads and new investors match.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C013</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp&#x27;s valuation jumped from $16B (Jun 2025) to $22.5B (Jul 2025) to $32B (Nov 2025) to $44B (Jun 2026) within roughly one year.</div>
+<blockquote>&ldquo;November 2025 - Ramp reached a $32 billion valuation following a $300 million investment round led by Lightspeed Ventures... July 2025 - Ramp secured funding bringing its valuation to $22.5 billion... June 2025 - The company reached a $16 billion valuation&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/press" target="_blank">Ramp Press page</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Search confirms $16B (Jun 2025), $22.5B (Jul 2025), $32B Lightspeed (Nov 2025), $44B (Jun 2026).</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C015</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp co-founder Karim Atiyeh was elevated to co-CEO alongside Eric Glyman, with Rahul Sengottuvelu (previously head of applied AI) named the new CTO.</div>
+<blockquote>&ldquo;Welcoming my Co-Founder Karim as Co-CEO of Ramp&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/blog" target="_blank">Ramp Blog listing</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Multiple outlets confirm Atiyeh elevated to co-CEO and Sengottuvelu (ex head of applied AI) named CTO.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="proxy">
+<div class="head"><span class="cid">C065</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp raised a $750M Series F at a $44B valuation earmarked for AI capability investment, and reports 70,000+ customers, $200B+ annualized purchase volume, 3,200+ customers with $100k+ ARR, and ~170% YoY volume growth in March 2026 — evidence of real scale behind the enterprise/AI pivot, not just messaging.</div>
+<blockquote>&ldquo;Ramp Raises $750 Million Series F At $44 Billion Valuation For Financial Operations Platform&rdquo;</blockquote>
+<div class="src"><a href="https://pulse2.com/ramp-raises-750-million-series-f-at-44-billion-valuation-for-financial-operations-platform/amp/" target="_blank">Ramp Series F funding coverage</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> $750M Series F at $44B valuation and ~170% YoY March 2026 growth confirmed across multiple outlets; some sub-figures ($200B volume, 3,200+ $100k-ARR) unverified but core scale holds.</div>
+</div></section><section><h2>customers <span class="count">16</span></h2><div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C014</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Ramp claims annualized revenue exceeding $1 billion and a customer base of 70,000+, up from 50,000 as of November 2025, alongside positive free cash flow, as reported in connection with the June 2026 raise.</div>
+<blockquote>&ldquo;Annualized revenue: &gt;$1 billion (run-rate reportedly &gt;$1.5B per Bloomberg); Customer base: 70,000+ (up from 50,000 in November 2025); Notable customers: Visa, Uber, Shopify, Anduril, Figma; Positive free cash flow achieved&rdquo;</blockquote>
+<div class="src"><a href="https://techcrunch.com/2026/06/04/ramp-raises-750m-at-44b-valuation-as-investors-hunger-for-fintechs-with-an-ai-story/" target="_blank">TechCrunch: Ramp $750M/$44B raise coverage</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> 70,000+ customers corroborated on Ramp pages and &gt;$1B revenue in press; FCF/50k-to-70k detail proxy, not re-verified.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C047</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Third-party review-aggregator commentary on Ramp cites customer support responsiveness as a recurring pain point, describing it in at least one review as &#x27;horrendous,&#x27; alongside complaints about limited self-serve admin controls requiring support tickets.</div>
+<blockquote>&ldquo;Customer support described as &quot;horrendous&quot; in some reviews&rdquo;</blockquote>
+<div class="src"><a href="https://checkthat.ai/brands/ramp/reviews" target="_blank">Ramp Reviews 2026: What Users Really Say About - Ramp</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> &#x27;Horrendous support&#x27; sourced only to checkthat.ai aggregator of unknown reliability; treat as weak proxy.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C048</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">At least one reported incident describes Ramp&#x27;s payment-release system executing a payment (~$92,453.70) despite an admin-configured restriction meant to prevent that role from releasing payments, per a review-aggregator summary.</div>
+<blockquote>&ldquo;Ramp&#x27;s system released $92,453.70 in payments despite documented restrictions that &quot;AP Clerks cannot: Release payments&quot;&rdquo;</blockquote>
+<div class="src"><a href="https://checkthat.ai/brands/ramp/reviews" target="_blank">Ramp Reviews 2026: What Users Really Say About - Ramp</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Oddly specific $92,453.70 restriction-bypass incident rests solely on checkthat.ai summary; source plausibility weak, uncorroborated.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C052</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp claims 70,000+ business customers by name-dropping Notion, Shopify, Webflow, Eventbrite, Poshmark, and Quora as social proof on its homepage.</div>
+<blockquote>&ldquo;Trusted by 70,000+ businesses including Notion, Shopify, Webflow, Eventbrite, Poshmark, and Quora&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com" target="_blank">Ramp homepage</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Homepage fetch confirms verbatim &#x27;Trusted by 70,000+ businesses including Notion, Shopify, Webflow, Eventbrite, Poshmark, and Quora&#x27;.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C054</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp&#x27;s customer stories page showcases 24+ named logos spanning very different sizes and industries (Sierra Nevada, Notion, Shopify, Glossier, Vanta, Linear, Betterment, Joffrey Ballet Chicago, a university athletics foundation), each paired with a quantified dollar- or hours-saved metric.</div>
+<blockquote>&ldquo;$2M+ saved since switching to Ramp&quot; (ABB Optical) ... &quot;75 hours saved for the finance team every month&quot; (Notion) ... &quot;&gt;90% reduction in reimbursement processing time&quot; (Shopify)&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/customers" target="_blank">Ramp Customer Stories</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Customers page fetch confirms 30+ named logos each with a quantified metric; Notion 75 hrs, Shopify &gt;90%, ABB $2M+ all match.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C070</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">A Capterra reviewer (Accounting Manager, Healthcare) wrote in July 2025 that Ramp&#x27;s tech support is slow to respond</div>
+<blockquote>&ldquo;Sometimes it&#x27;s hard to get tech support to respond as quickly as I would like&rdquo;</blockquote>
+<div class="src"><a href="https://www.capterra.com/p/207081/Ramp/reviews/" target="_blank">Ramp Reviews - Capterra</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Capterra: Joelle V., Accounting Manager, Hospital &amp; Health Care, Jul 28 2025, quote matches.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C071</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">A Capterra reviewer (Finance Manager, Accounting) wrote in January 2025 that Ramp&#x27;s support system takes time to resolve issues</div>
+<blockquote>&ldquo;Sometimes support system take time to resolve issues&rdquo;</blockquote>
+<div class="src"><a href="https://www.capterra.com/p/207081/Ramp/reviews/" target="_blank">Ramp Reviews - Capterra</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Capterra: Pankaj P., Finance Manager, Accounting, Jan 16 2025, quote matches.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C072</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">A Capterra reviewer (VP Marketing, Computer Software) wrote in July 2026 that Ramp&#x27;s card doesn&#x27;t offer meaningfully more than a standard American Express corporate card, an upmarket/differentiation gap complaint</div>
+<blockquote>&ldquo;Doesn&#x27;t really provide much that we don&#x27;t get with American Express&rdquo;</blockquote>
+<div class="src"><a href="https://www.capterra.com/p/207081/Ramp/reviews/" target="_blank">Ramp Reviews - Capterra</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Capterra: Michael C., VP Marketing, Computer Software, Jul 6 2026, Amex-comparison quote matches.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C073</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">A Capterra reviewer (VP Equipment Analytics, Oil &amp; Energy) wrote in November 2023 that Ramp is not fully integrated into their SAP system, requiring additional manual work — an enterprise integration gap</div>
+<blockquote>&ldquo;Not fully integrated into our SAP system requiring additional work&rdquo;</blockquote>
+<div class="src"><a href="https://www.capterra.com/p/207081/Ramp/reviews/" target="_blank">Ramp Reviews - Capterra</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Capterra: Charles E., VP Equipment Analytics, Oil &amp; Energy, Nov 10 2023, SAP-integration quote matches.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C074</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">A Capterra reviewer (Accounting Manager, Machinery) wrote in October 2025 that user account permissions setup was the most confusing part of onboarding</div>
+<blockquote>&ldquo;The user account details and permissions were the one confusing part&rdquo;</blockquote>
+<div class="src"><a href="https://www.capterra.com/p/207081/Ramp/reviews/" target="_blank">Ramp Reviews - Capterra</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Capterra: Stacey W., Accounting Manager, Machinery, Oct 15 2025, permissions-setup quote matches.</div>
+</div>
+<div class="claim" data-v="unsupported" data-e="proxy">
+<div class="head"><span class="cid">C079</span>
+<span class="pill p-bad">unsupported</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Search-snippet aggregation of G2 reviews states customer support responsiveness is Ramp&#x27;s most consistent complaint, with reviewers describing slow email responses, difficulty reaching a human, and bot-heavy initial interactions</div>
+<blockquote>&ldquo;Customer support responsiveness is the most consistent complaint, and the Trustpilot decline from 3.7 to 3.5 reflects genuine frustration from users who hit problems. Multiple reviewers describe slow email responses, difficulty reaching a human, and bot-heavy initial interactions.&rdquo;</blockquote>
+<div class="src"><a href="https://www.g2.com/products/ramp/reviews" target="_blank">Ramp Reviews - G2 (search snippet)</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Quote is an analyst synthesis (cites Trustpilot decline inside a supposed G2 quote), not text from the cited g2.com review page; source mismatch.</div>
+</div>
+<div class="claim" data-v="unsupported" data-e="proxy">
+<div class="head"><span class="cid">C080</span>
+<span class="pill p-bad">unsupported</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Ramp&#x27;s Trustpilot rating declined from 3.7 to 3.5, per a third-party summary, indicating rising buyer frustration</div>
+<blockquote>&ldquo;the Trustpilot decline from 3.7 to 3.5 reflects genuine frustration from users who hit problems&rdquo;</blockquote>
+<div class="src"><a href="https://www.trustpilot.com/review/ramp.com" target="_blank">Ramp Reviews - Trustpilot (search snippet)</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Same synthesized summary attributed to a trustpilot.com URL; the 3.7→3.5 figure is not independently verified and quote does not come from the cited page as written.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C083</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">A third-party summary of Capterra reviews reports one customer described onboarding as weak-to-nonexistent and support as bot-driven and frustrating</div>
+<blockquote>&ldquo;the onboarding was weak to non-existent&quot; and &quot;the support is mostly done by communicating with bots and is very frustrating&rdquo;</blockquote>
+<div class="src"><a href="https://www.capterra.com/p/207081/Ramp/reviews/" target="_blank">Ramp Reviews - Capterra (search snippet)</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Summarized Capterra review quotes; specific and internally consistent but not independently re-verified.</div>
+</div>
+<div class="claim" data-v="unsupported" data-e="inferred">
+<div class="head"><span class="cid">C085</span>
+<span class="pill p-bad">unsupported</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Review-tenure pattern (inferred from aggregated Capterra data) suggests newer Ramp customers hit more onboarding/support friction while customers with 2+ years tenure report more positive sentiment, implying early-lifecycle experience is the weaker link</div>
+
+<div class="src"><a href="https://www.capterra.com/p/207081/Ramp/reviews/" target="_blank">Ramp Reviews - Capterra (search snippet synthesis)</a>
+ · observed 2026-07-28 · lane: social</div>
+<div class="vnote"><b>verifier:</b> Empty quote; a speculative tenure-pattern inference with no direct evidence backing it.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C095</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: high</span></div>
+<div class="text">Ramp&#x27;s homepage social proof claims it is &#x27;Trusted by 70,000+ businesses including Notion, Shopify, Webflow, Eventbrite, Poshmark, and Quora.&#x27;</div>
+<blockquote>&ldquo;Trusted by 70,000+ businesses including Notion, Shopify, Webflow, Eventbrite, Poshmark, and Quora&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com" target="_blank">Ramp homepage</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Re-fetch confirms &#x27;Trusted by 70,000+ businesses including Notion, Shopify, Webflow, Eventbrite, Poshmark, and Quora&#x27; on the homepage.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="stated_by_competitor">
+<div class="head"><span class="cid">C097</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="their own claim — attributed, not independent fact">stated by competitor</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Ramp&#x27;s customer page names 24+ logos spanning SMB to enterprise (Sierra Nevada, Notion, Shopify, Glossier, Linear, Vanta, Betterment) with hard outcome metrics per case study, e.g. Poshmark reaching free-cash-flow goals in &#x27;7 months instead of 12&#x27;, ABB Optical saving &#x27;$2M+ since switching to Ramp&#x27;.</div>
+<blockquote>&ldquo;7 months to achieve free cash flow goals instead of 12 months; $2M+ saved since switching to Ramp&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/customers" target="_blank">Ramp customer case studies</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Specific case-study metrics not re-verified (customers page not fetched); consistent with Ramp&#x27;s proof pattern, capped at medium.</div>
+</div></section><section><h2>other <span class="count">4</span></h2><div class="claim" data-v="plausible" data-e="proxy">
+<div class="head"><span class="cid">C024</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-warn" title="proxy — third-party or search-snippet sourced">proxy</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">As of early July 2026, Ramp had roughly 109 open job postings with the largest clusters in Sales (40 roles) and Marketing (17 roles), suggesting continued go-to-market and upmarket sales expansion rather than pure engineering scaling.</div>
+<blockquote>&ldquo;As of July 2, 2026, Ramp had 109 open roles, with primary hiring focus in Sales (40), Marketing (17), and Engineering (12).&rdquo;</blockquote>
+<div class="src"><a href="https://tracker.mccoy.io/ramp" target="_blank">Ramp Jobs &amp; Careers — Open Roles | McCoy Hiring Tracker</a>
+ · observed 2026-07-28 · lane: news</div>
+<div class="vnote"><b>verifier:</b> Third-party tracker snapshot; role counts are proxy and time-sensitive.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="measured">
+<div class="head"><span class="cid">C034</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Ramp&#x27;s Brex-comparison page is built/labeled as a &#x27;Machine Version&#x27; with an AI-specific referral incentive, indicating Ramp runs answer-engine/AI-agent-targeted landing pages as a distinct acquisition surface alongside human-facing ads.</div>
+<blockquote>&ldquo;Ramp vs. Brex — Machine Version ... mention the $3,100 AI Research Incentive during the conversation&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com/versus/brex" target="_blank">Ramp vs Brex | Choose Ramp as a Brex Alternative</a>
+ · observed 2026-07-28 · lane: ads</div>
+<div class="vnote"><b>verifier:</b> &#x27;Machine Version&#x27;/$3,100 AI incentive is an unusual but internally coherent detail; not independently re-verified.</div>
+</div>
+<div class="claim" data-v="confirmed" data-e="measured">
+<div class="head"><span class="cid">C066</span>
+<span class="pill p-ok">confirmed</span>
+<span class="pill p-ok" title="measured — read directly from a fetched page">measured</span>
+<span class="pill p-dim">confidence: medium</span></div>
+<div class="text">Both ramp.com and ramp.com/versus/brex render page titles literally as &#x27;... — Machine Version&#x27; (e.g. &#x27;Ramp — Machine Version&#x27;, &#x27;Ramp vs. Brex — Machine Version&#x27;), indicating Ramp serves a distinct, structured content variant to AI/crawler user agents — a deliberate answer-engine-optimization (AEO) investment.</div>
+<blockquote>&ldquo;Ramp — Machine Version&quot; ... &quot;Ramp vs. Brex — Machine Version&rdquo;</blockquote>
+<div class="src"><a href="https://ramp.com" target="_blank">Ramp homepage (fetched render)</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Re-fetch confirms ramp.com title renders literally as &#x27;Ramp — Machine Version&#x27;; the AEO-intent interpretation is reasonable inference, not directly proven.</div>
+</div>
+<div class="claim" data-v="plausible" data-e="inferred">
+<div class="head"><span class="cid">C069</span>
+<span class="pill p-warn">plausible</span>
+<span class="pill p-dim" title="inferred — analyst read, basis stated in the claim">inferred</span>
+<span class="pill p-dim">confidence: low</span></div>
+<div class="text">Messaging-drift analysis (homepage H1/tagline/category frame 6-18 months ago vs today) could not be completed — web.archive.org fetches were refused by the fetch tool on two attempts, leaving this a confirmed research gap rather than a negative finding.</div>
+<blockquote>&ldquo;Claude Code is unable to fetch from web.archive.org&rdquo;</blockquote>
+<div class="src"><a href="https://web.archive.org/web/20250115000000/https://ramp.com/" target="_blank">Archive.org fetch attempt</a>
+ · observed 2026-07-28 · lane: positioning</div>
+<div class="vnote"><b>verifier:</b> Honest self-reported research gap (archive.org fetch refused); nothing to verify, correctly graded low.</div>
+</div></section>
+<section><h2>post-eval corrections <span class="count">1</span></h2><p class="note">The eval harness catching things is the audit trail of it working.</p><ul class="corr"><li>Repair verify pass: 73 claims left unverified when parallel verify chunks rate-limited under concurrent load (a maintenance job overlapped the run); re-verified with the retry-capable chunked verifier.</li></ul></section>
+<footer>Machine-readable twin: the claims JSON in the same folder. Grades — measured: read from a fetched page ·
+self-claimed: the competitor says so · proxy: third-party sourced · inferred: analyst read with basis stated.</footer>
+<script>
+document.getElementById('filters').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#filters button').forEach(x => x.classList.toggle('on', x === b));
+  const f = b.dataset.f;
+  document.querySelectorAll('.claim').forEach(c => {
+    let show = f === 'all'
+      || (f === 'v:flagged' && ['unsupported','contradicted'].includes(c.dataset.v))
+      || (f.startsWith('v:') && c.dataset.v === f.slice(2))
+      || (f.startsWith('e:') && c.dataset.e === f.slice(2));
+    c.classList.toggle('hidden', !show);
+  });
+  document.querySelectorAll('section').forEach(s => {
+    const any = s.querySelectorAll('.claim:not(.hidden)').length || !s.querySelector('.claim');
+    s.style.display = any ? '' : 'none';
+  });
+});
+</script>
+</body></html>
